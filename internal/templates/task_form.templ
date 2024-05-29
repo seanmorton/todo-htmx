@@ -1,0 +1,40 @@
+package templates
+
+import (
+  "fmt"
+
+  "github.com/seanmorton/todo-htmx/internal/domain"
+)
+
+templ TaskForm(task domain.Task) {
+  if task.ID == 0 {
+    <form hx-post="/tasks">
+      @TaskFields(task)
+      <button type="submit">Create</button>
+    </form>
+  } else {
+    <form hx-put={ fmt.Sprintf("/tasks/%d", task.ID) }>
+      @TaskFields(task)
+      <button type="submit">Update</button>
+    </form>
+  }
+}
+
+templ TaskFields(task domain.Task) {
+    <label>Title</label>
+    <input type="text" name="title" value={ task.Title } />
+
+    <label>Description</label>
+    if task.Description != nil {
+      <input type="text" name="description" value={ *task.Description } />
+    } else {
+      <input type="text" name="description" />
+    }
+
+    <label>DueDate</label>
+    if task.DueDate != nil {
+      <input type="date" name="dueDate" value={ task.DueDateStr() } />
+    } else {
+      <input type="date" name="dueDate" />
+    }
+}

@@ -1,0 +1,39 @@
+package templates
+
+templ Index(content templ.Component) {
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>todo-htmx</title>
+      <meta charset="utf-8"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+      <meta name="description" content="todo-htmx"/>
+      <meta name="apple-mobile-web-app-capable" content="yes"/>
+      <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+      <meta name="apple-mobile-web-app-title" content="todo-htmx"/>
+
+      <link rel="icon" type="image/png" href="/public/icons/16.png"/>
+      <link rel="manifest" href="/public/manifest.json" />
+      <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"/>
+      <!--<link rel="stylesheet" href="/public/styles.css"/>-->
+
+      <script src="https://unpkg.com/htmx.org@1.9.10"
+              integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+              crossorigin="anonymous">
+      </script>
+      <script src="https://unpkg.com/pulltorefreshjs"></script>
+    </head>
+    <body>
+      <span id="loading" class="loader"></span>
+      <main>
+        @content
+      </main>
+      <script>
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("/public/sw.js");
+        }
+        PullToRefresh.init();
+      </script>
+    </body>
+  </html>
+}

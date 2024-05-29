@@ -1,0 +1,30 @@
+package templates
+
+import (
+  "fmt"
+
+  "github.com/seanmorton/todo-htmx/internal/domain"
+)
+
+templ Tasks(tasks []domain.Task) {
+  <button hx-get={ "/tasks/new" } hx-target="main" hx-push-url="true">
+    New Task
+  </button>
+  <hr />
+  for _, task := range tasks {
+    <div hx-get={ fmt.Sprintf("/tasks/%d", task.ID) }  hx-target="main" hx-push-url="true">
+      <h4>{task.Title}</h4>
+    </div>
+    if task.DueDate != nil {
+      <p>Due: { task.DueDateStr() }</p>
+    }
+    if !task.Done() {
+      <button hx-post={ fmt.Sprintf("/tasks/%d/complete", task.ID) }>✅</button>
+    }
+    <button
+      hx-delete={ fmt.Sprintf("/tasks/%d", task.ID) }
+      hx-confirm="Are you sure you want to delete this task?"
+    >❌</button>
+    <hr />
+  }
+}

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,9 +11,10 @@ import (
 )
 
 func (s *Server) listTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, _ := s.tasksDB.Query(map[string]any{
+	tasks, err := s.tasksDB.Query(map[string]any{
 		"completed_at": nil,
 	})
+	fmt.Println(err)
 	s.hxRender(w, r, templates.Tasks(tasks))
 }
 
@@ -47,7 +49,10 @@ func (s *Server) createTask(w http.ResponseWriter, r *http.Request) {
 	//	N:    30,
 	//}
 	//task.RecurPolicy, _ = json.Marshal(recurPolicy)
-	_, _ = s.tasksDB.Create(task)
+	_, err := s.tasksDB.Create(task)
+	if err != nil {
+		fmt.Printf("ERROR: %s", err)
+	}
 
 	s.hxRedirect(w, r, "/tasks")
 }
@@ -89,9 +94,10 @@ func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) {
 
 	if task.RecurPolicy != nil {
 		recurTask := domain.Task{
+			ProjectId:   task.ProjectId,
+			AssigneeId:  task.AssigneeId,
 			Title:       task.Title,
 			Description: task.Description,
-			Assignee:    task.Assignee,
 			RecurPolicy: task.RecurPolicy,
 		}
 		recurTask.DueDate = task.NextRecurDate()

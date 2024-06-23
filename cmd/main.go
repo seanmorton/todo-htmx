@@ -30,6 +30,7 @@ func main() {
 	if err != nil {
 		slog.Error("failed opening db", "err", err)
 	}
+	db.Exec("PRAGMA foreign_keys = ON;")
 
 	tasksDB := app.NewTasksDB(db)
 	server := app.NewServer(tasksDB, tz)

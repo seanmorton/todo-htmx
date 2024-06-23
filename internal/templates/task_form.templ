@@ -7,13 +7,13 @@ import (
 )
 
 templ TaskForm(task domain.Task) {
-  if task.ID == 0 {
+  if task.Id == 0 {
     <form hx-post="/tasks">
       @TaskFields(task)
       <button type="submit">Create</button>
     </form>
   } else {
-    <form hx-put={ fmt.Sprintf("/tasks/%d", task.ID) }>
+    <form hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }>
       @TaskFields(task)
       <button type="submit">Update</button>
     </form>

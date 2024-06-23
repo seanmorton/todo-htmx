@@ -28,7 +28,7 @@ func (t *TasksDB) Create(task domain.Task) (domain.Task, error) {
 	if err != nil {
 		return domain.Task{}, err
 	}
-	task.ID = id
+	task.Id = id
 	return task, nil
 }
 
@@ -36,8 +36,8 @@ func (t *TasksDB) Get(id int64) (domain.Task, error) {
 	var task domain.Task
 	row := t.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
 	err := row.Scan(
-		&task.ID, &task.Title, &task.Description,
-		&task.Assignee, &task.DueDate, &task.CompletedAt,
+		&task.Id, &task.ProjectId, &task.AssigneeId,
+		&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
 		&task.RecurPolicy, &task.CreatedAt,
 	)
 	return task, err
@@ -48,7 +48,7 @@ func (t *TasksDB) Update(task domain.Task) (domain.Task, error) {
 		`UPDATE tasks
      SET title = ?, description = ?, due_date = ?, completed_at = ?, recur_policy = ?
      WHERE id = ?`,
-		task.Title, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy, task.ID,
+		task.Title, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy, task.Id,
 	)
 	return task, err
 }
@@ -103,8 +103,8 @@ func (t *TasksDB) Query(filters map[string]any) ([]domain.Task, error) {
 	for rows.Next() {
 		var task domain.Task
 		if err := rows.Scan(
-			&task.ID, &task.Title, &task.Description,
-			&task.Assignee, &task.DueDate, &task.CompletedAt,
+			&task.Id, &task.ProjectId, &task.AssigneeId,
+			&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
 			&task.RecurPolicy, &task.CreatedAt,
 		); err != nil {
 			return nil, err

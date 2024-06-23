@@ -6,10 +6,11 @@ import (
 )
 
 type Task struct {
-	ID          int64      `json:"id"`
+	Id          int64      `json:"id"`
+	ProjectId   *int64     `json:"ProjectId"`
+	AssigneeId  *int64     `json:"assignee_id"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
-	Assignee    *string    `json:"assignee"`
 	DueDate     *time.Time `json:"due_date"`
 	CompletedAt *time.Time `json:"completed_at"`
 	RecurPolicy []byte     `json:"recur_policy"`

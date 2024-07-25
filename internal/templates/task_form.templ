@@ -6,23 +6,35 @@ import (
   "github.com/seanmorton/todo-htmx/internal/domain"
 )
 
-templ TaskForm(task domain.Task) {
+templ TaskForm(task domain.Task, projects []domain.Project) {
   if task.Id == 0 {
     <form hx-post="/tasks">
-      @TaskFields(task)
+      @TaskFields(task, projects)
       <button type="submit">Create</button>
     </form>
   } else {
     <form hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }>
-      @TaskFields(task)
+      @TaskFields(task, projects)
       <button type="submit">Update</button>
     </form>
   }
 }
 
-templ TaskFields(task domain.Task) {
+templ TaskFields(task domain.Task, projects []domain.Project) {
     <label>Title</label>
     <input type="text" name="title" value={ task.Title } />
+
+    <label>Project</label>
+    <select name="projectId">
+      <option value="">--</option>
+      for _, project := range projects {
+        if task.ProjectId != nil && *task.ProjectId == project.Id {
+          <option value={ fmt.Sprintf("%d", project.Id) } selected>{ project.Name }</option>
+        } else {
+          <option value={ fmt.Sprintf("%d", project.Id) }>{ project.Name }</option>
+        }
+      }
+    </select>
 
     <label>Description</label>
     if task.Description != nil {

@@ -1,25 +1,16 @@
-package app
+package data
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
 )
 
-type TasksDB struct {
-	db *sql.DB
-}
-
-func NewTasksDB(db *sql.DB) TasksDB {
-	return TasksDB{db: db}
-}
-
-func (t *TasksDB) Create(task domain.Task) (domain.Task, error) {
-	result, err := t.db.Exec(
-		"INSERT INTO tasks(title, description, due_date, completed_at, recur_policy) VALUES(?, ?, ?, ?, ?)",
-		task.Title, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy,
+func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
+	result, err := d.dbConn.Exec(
+		"INSERT INTO tasks(title, project_id, description, due_date, completed_at, recur_policy) VALUES(?, ?, ?, ?, ?, ?)",
+		task.Title, task.ProjectId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy,
 	)
 	if err != nil {
 		return domain.Task{}, err
@@ -32,9 +23,9 @@ func (t *TasksDB) Create(task domain.Task) (domain.Task, error) {
 	return task, nil
 }
 
-func (t *TasksDB) Get(id int64) (domain.Task, error) {
+func (d *DB) GetTask(id int64) (domain.Task, error) {
 	var task domain.Task
-	row := t.db.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
+	row := d.dbConn.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
 	err := row.Scan(
 		&task.Id, &task.ProjectId, &task.AssigneeId,
 		&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
@@ -43,18 +34,18 @@ func (t *TasksDB) Get(id int64) (domain.Task, error) {
 	return task, err
 }
 
-func (t *TasksDB) Update(task domain.Task) (domain.Task, error) {
-	_, err := t.db.Exec(
+func (d *DB) UpdateTask(task domain.Task) (domain.Task, error) {
+	_, err := d.dbConn.Exec(
 		`UPDATE tasks
-     SET title = ?, description = ?, due_date = ?, completed_at = ?, recur_policy = ?
+     SET title = ?, project_id = ?, description = ?, due_date = ?, completed_at = ?, recur_policy = ?
      WHERE id = ?`,
-		task.Title, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy, task.Id,
+		task.Title, task.ProjectId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy, task.Id,
 	)
 	return task, err
 }
 
-func (t *TasksDB) Delete(id int64) error {
-	res, err := t.db.Exec("DELETE FROM tasks WHERE id = ?", id)
+func (d *DB) DeleteTask(id int64) error {
+	res, err := d.dbConn.Exec("DELETE FROM tasks WHERE id = ?", id)
 	if err != nil {
 		return err
 	}
@@ -68,7 +59,7 @@ func (t *TasksDB) Delete(id int64) error {
 	return err
 }
 
-func (t *TasksDB) Query(filters map[string]any) ([]domain.Task, error) {
+func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 	query := "SELECT * FROM tasks"
 	args := make([]any, 0, len(filters))
 	if len(filters) > 0 {
@@ -94,7 +85,7 @@ func (t *TasksDB) Query(filters map[string]any) ([]domain.Task, error) {
 	fmt.Println(query)
 
 	var tasks []domain.Task
-	rows, err := t.db.Query(query, args...)
+	rows, err := d.dbConn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

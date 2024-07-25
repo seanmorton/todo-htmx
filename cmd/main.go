@@ -10,10 +10,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/seanmorton/todo-htmx/internal/app"
+	"github.com/seanmorton/todo-htmx/internal/data"
 )
 
 func main() {
-	tz, _ := time.LoadLocation("America/Chicago") // TODO configure
+	tz, _ := time.LoadLocation("America/Chicago") // TODO configure or use client tz
 
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {
@@ -25,15 +26,15 @@ func main() {
 		port = ":8080"
 	}
 
-	db, err := sql.Open("sqlite3", dbFile)
-	defer db.Close()
+	dbConn, err := sql.Open("sqlite3", dbFile)
+	defer dbConn.Close()
 	if err != nil {
 		slog.Error("failed opening db", "err", err)
 	}
-	db.Exec("PRAGMA foreign_keys = ON;")
+	dbConn.Exec("PRAGMA foreign_keys = ON;")
 
-	tasksDB := app.NewTasksDB(db)
-	server := app.NewServer(tasksDB, tz)
+	db := data.NewDB(dbConn)
+	server := app.NewServer(db, tz)
 
 	slog.Info("starting server")
 	server.RegisterRoutes()

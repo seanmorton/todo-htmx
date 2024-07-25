@@ -6,22 +6,27 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/seanmorton/todo-htmx/internal/data"
 	"github.com/seanmorton/todo-htmx/internal/templates"
 )
 
 type Server struct {
-	tasksDB TasksDB
-	tz      *time.Location
+	db data.DB
+	tz *time.Location
 }
 
 // TODO error handling
 // TODO SSE for new tasks
-func NewServer(taskDB TasksDB, tz *time.Location) Server {
-	return Server{tasksDB: taskDB, tz: tz}
+func NewServer(db data.DB, tz *time.Location) Server {
+	return Server{db: db, tz: tz}
 }
 
 func (s *Server) RegisterRoutes() {
 	http.HandleFunc("/", s.index)
+
+	// TODO
+	//http.HandleFunc("GET /projects", s.listProjects)
+
 	http.HandleFunc("GET /tasks", s.listTasks)
 	http.HandleFunc("GET /tasks/new", s.newTask)
 	http.HandleFunc("GET /tasks/{id}", s.getTask)

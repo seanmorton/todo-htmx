@@ -1,7 +1,9 @@
 package app
 
 import (
+	"embed"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -15,25 +17,45 @@ type Server struct {
 	tz *time.Location
 }
 
-// TODO error handling
+type httpErr struct {
+	Message string
+	Code    int
+	Cause   error
+}
+
+type handler func(http.ResponseWriter, *http.Request) *httpErr
+
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := h(w, r); err != nil {
+		slog.Error(err.Message, "code", err.Code, "cause", err.Cause)
+		http.Error(w, err.Message, err.Code)
+	}
+}
+
 // TODO SSE for new tasks
 func NewServer(db data.DB, tz *time.Location) Server {
 	return Server{db: db, tz: tz}
 }
 
-func (s *Server) RegisterRoutes() {
-	http.HandleFunc("/", s.index)
+func (s *Server) Start(port string, publicDir embed.FS) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", s.index)
+
+	mux.Handle("/public/", http.FileServer(http.FS(publicDir)))
 
 	// TODO
 	//http.HandleFunc("GET /projects", s.listProjects)
 
-	http.HandleFunc("GET /tasks", s.listTasks)
-	http.HandleFunc("GET /tasks/new", s.newTask)
-	http.HandleFunc("GET /tasks/{id}", s.getTask)
-	http.HandleFunc("POST /tasks", s.createTask)
-	http.HandleFunc("POST /tasks/{id}/complete", s.completeTask)
-	http.HandleFunc("PUT /tasks/{id}", s.updateTask)
-	http.HandleFunc("DELETE /tasks/{id}", s.deleteTask)
+	mux.Handle("GET /tasks", handler(s.tasks))
+	mux.Handle("GET /tasks/list", handler(s.taskList))
+	mux.Handle("GET /tasks/new", handler(s.newTask))
+	mux.Handle("GET /tasks/{id}", handler(s.getTask))
+	mux.Handle("POST /tasks", handler(s.createTask))
+	mux.Handle("POST /tasks/{id}/complete", handler(s.completeTask))
+	mux.Handle("PUT /tasks/{id}", handler(s.updateTask))
+	mux.Handle("DELETE /tasks/{id}", handler(s.deleteTask))
+
+	return http.ListenAndServe(port, s.loggingMiddleware(mux))
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
@@ -55,4 +77,11 @@ func (s *Server) hxRedirect(w http.ResponseWriter, r *http.Request, location str
 	} else {
 		http.Redirect(w, r, location, http.StatusSeeOther)
 	}
+}
+
+func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info(fmt.Sprintf("%s %s", r.Method, r.RequestURI), "hx", (r.Header.Get("HX-Request") == "true"))
+		next.ServeHTTP(w, r)
+	})
 }

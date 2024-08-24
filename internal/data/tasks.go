@@ -1,7 +1,7 @@
 package data
 
 import (
-	"errors"
+	"database/sql"
 	"fmt"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
@@ -23,7 +23,7 @@ func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
 	return task, nil
 }
 
-func (d *DB) GetTask(id int64) (domain.Task, error) {
+func (d *DB) GetTask(id int64) (*domain.Task, error) {
 	var task domain.Task
 	row := d.dbConn.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
 	err := row.Scan(
@@ -31,32 +31,50 @@ func (d *DB) GetTask(id int64) (domain.Task, error) {
 		&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
 		&task.RecurPolicy, &task.CreatedAt,
 	)
-	return task, err
-}
-
-func (d *DB) UpdateTask(task domain.Task) (domain.Task, error) {
-	_, err := d.dbConn.Exec(
-		`UPDATE tasks
-     SET title = ?, project_id = ?, description = ?, due_date = ?, completed_at = ?, recur_policy = ?
-     WHERE id = ?`,
-		task.Title, task.ProjectId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy, task.Id,
-	)
-	return task, err
-}
-
-func (d *DB) DeleteTask(id int64) error {
-	res, err := d.dbConn.Exec("DELETE FROM tasks WHERE id = ?", id)
-	if err != nil {
-		return err
+	if err == sql.ErrNoRows {
+		return nil, nil
 	}
+
+	return &task, err
+}
+
+func (d *DB) UpdateTask(task domain.Task) (*domain.Task, error) {
+	res, err := d.dbConn.Exec(
+		`UPDATE tasks
+     SET title = ?, project_id = ?, description = ?, due_date = ?, recur_policy = ?
+     WHERE id = ?`,
+		task.Title, task.ProjectId, task.Description, task.DueDate, task.RecurPolicy, task.Id,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if rowsAffected == int64(1) {
-		return errors.New("task not found")
+	if rowsAffected == 0 {
+		return nil, nil
 	}
-	return err
+
+	return &task, err
+}
+
+func (d *DB) DeleteTask(id int64) (bool, error) {
+	res, err := d.dbConn.Exec("DELETE FROM tasks WHERE id = ?", id)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rowsAffected == 0 {
+		return false, nil
+
+	}
+	return true, nil
 }
 
 func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
@@ -71,8 +89,8 @@ func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 				clause = fmt.Sprintf("%s IS NULL", col)
 			} else {
 				clause = fmt.Sprintf("%s = ?", col)
+				args = append(args, val)
 			}
-			args = append(args, val)
 			if count < 1 {
 				query += fmt.Sprintf(" %s", clause)
 			} else {
@@ -82,7 +100,6 @@ func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 		}
 	}
 	query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"
-	fmt.Println(query)
 
 	var tasks []domain.Task
 	rows, err := d.dbConn.Query(query, args...)
@@ -105,5 +122,6 @@ func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
 	return tasks, nil
 }

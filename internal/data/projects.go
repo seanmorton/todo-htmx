@@ -24,5 +24,6 @@ func (d *DB) ListProjects() ([]domain.Project, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+
 	return projects, nil
 }

@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -12,6 +12,9 @@ import (
 	"github.com/seanmorton/todo-htmx/internal/app"
 	"github.com/seanmorton/todo-htmx/internal/data"
 )
+
+//go:embed public
+var publicDir embed.FS
 
 func main() {
 	tz, _ := time.LoadLocation("America/Chicago") // TODO configure or use client tz
@@ -36,9 +39,8 @@ func main() {
 	db := data.NewDB(dbConn)
 	server := app.NewServer(db, tz)
 
-	slog.Info("starting server")
-	server.RegisterRoutes()
-	err = http.ListenAndServe(port, nil)
+	slog.Info("starting server...")
+	err = server.Start(port, publicDir)
 	if err != nil {
 		slog.Error("failed to start server", "err", err)
 	}

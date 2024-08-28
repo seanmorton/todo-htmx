@@ -84,7 +84,7 @@ func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
 	s.applyTaskReq(&task, r)
 
-	_, err := s.db.CreateTask(task)
+	task, err := s.db.CreateTask(task)
 	if err != nil {
 		return &httpErr{"failed creating task", 500, err}
 	}

@@ -1,4 +1,4 @@
-package app
+package handlers
 
 import (
 	"net/http"
@@ -10,12 +10,16 @@ import (
 )
 
 func getTaskFilters(r *http.Request) map[string]any {
-	filters := map[string]any{
-		"completed_at": nil,
-	}
-	projectId := r.URL.Query().Get("project_id")
+	filters := map[string]any{}
+	projectId := r.URL.Query().Get("projectId")
 	if projectId != "" {
-		filters["project_id"], _ = strconv.ParseInt(projectId, 10, 64)
+		filters["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
+	}
+	completed := r.URL.Query().Get("completed")
+	if completed == "true" {
+		filters["completed_at"] = "NOT NULL"
+	} else {
+		filters["completed_at"] = nil
 	}
 
 	return filters
@@ -43,40 +47,35 @@ func (s *Server) taskList(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskList(tasks))
+	s.hxRender(w, r, templates.TaskRows(tasks))
 	return nil
 }
 
 func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
+	task := domain.Task{}
+	s.applyTaskReq(&task, r)
+
 	projects, err := s.db.ListProjects()
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskForm(domain.Task{}, projects))
+	s.hxRender(w, r, templates.TaskForm(task, projects))
 	return nil
 }
 
 func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		return &httpErr{"invalid id", 400, nil}
+	task, retrieveErr := s.retrieveTask(r)
+	if retrieveErr != nil {
+		return retrieveErr
 	}
 
-	task, err := s.db.GetTask(id)
-	if err != nil {
-		return &httpErr{"failed getting task", 500, err}
-	}
-	if task == nil {
-		return &httpErr{"task not found", 404, nil}
-	}
-
-	projects, _ := s.db.ListProjects()
+	projects, err := s.db.ListProjects()
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskForm(*task, projects))
+	s.hxRender(w, r, templates.TaskForm(task, projects))
 	return nil
 }
 
@@ -89,19 +88,18 @@ func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed creating task", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskRow(task))
+	s.hxEvent(w, "taskChange")
+	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
 
 func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		return &httpErr{"invalid id", 400, nil}
+	task, retrieveErr := s.retrieveTask(r)
+	if retrieveErr != nil {
+		return retrieveErr
 	}
 
-	task := domain.Task{Id: id}
 	s.applyTaskReq(&task, r)
-
 	res, err := s.db.UpdateTask(task)
 	if err != nil {
 		return &httpErr{"failed updating task", 500, err}
@@ -110,26 +108,20 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"task not found", 404, nil}
 	}
 
-	s.hxRender(w, r, templates.TaskRow(task))
+	s.hxEvent(w, "taskChange")
+	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
 
 func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil {
-		return &httpErr{"invalid id", 400, nil}
-	}
-	task, err := s.db.GetTask(id)
-	if err != nil {
-		return &httpErr{"failed getting task", 500, err}
-	}
-	if task == nil {
-		return &httpErr{"task not found", 404, nil}
+	task, retrieveErr := s.retrieveTask(r)
+	if retrieveErr != nil {
+		return retrieveErr
 	}
 
 	now := time.Now()
 	task.CompletedAt = &now
-	_, err = s.db.UpdateTask(*task)
+	_, err := s.db.UpdateTask(task)
 	if err != nil {
 		return &httpErr{"failed completing task", 500, err}
 	}
@@ -149,6 +141,7 @@ func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		}
 	}
 
+	s.hxEvent(w, "taskChange")
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
@@ -169,6 +162,21 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
+}
+
+func (s *Server) retrieveTask(r *http.Request) (domain.Task, *httpErr) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		return domain.Task{}, &httpErr{"invalid id", 400, nil}
+	}
+	task, err := s.db.GetTask(id)
+	if err != nil {
+		return domain.Task{}, &httpErr{"failed getting task", 500, err}
+	}
+	if task == nil {
+		return domain.Task{}, &httpErr{"task not found", 404, nil}
+	}
+	return *task, nil
 }
 
 func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {

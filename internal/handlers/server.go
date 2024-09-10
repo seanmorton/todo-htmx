@@ -1,4 +1,4 @@
-package app
+package handlers
 
 import (
 	"embed"
@@ -77,6 +77,10 @@ func (s *Server) hxRedirect(w http.ResponseWriter, r *http.Request, location str
 	} else {
 		http.Redirect(w, r, location, http.StatusSeeOther)
 	}
+}
+
+func (s *Server) hxEvent(w http.ResponseWriter, eventName string) {
+	w.Header().Set("HX-Trigger", eventName)
 }
 
 func (s *Server) loggingMiddleware(next http.Handler) http.Handler {

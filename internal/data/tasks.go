@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
+	"github.com/seanmorton/todo-htmx/pkg"
 )
 
 func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
@@ -41,9 +42,9 @@ func (d *DB) GetTask(id int64) (*domain.Task, error) {
 func (d *DB) UpdateTask(task domain.Task) (*domain.Task, error) {
 	res, err := d.dbConn.Exec(
 		`UPDATE tasks
-     SET title = ?, project_id = ?, description = ?, due_date = ?, recur_policy = ?
+     SET title = ?, project_id = ?, description = ?, due_date = ?, recur_policy = ?, completed_at = ?
      WHERE id = ?`,
-		task.Title, task.ProjectId, task.Description, task.DueDate, task.RecurPolicy, task.Id,
+		task.Title, task.ProjectId, task.Description, task.DueDate, task.RecurPolicy, task.CompletedAt, task.Id,
 	)
 	if err != nil {
 		return nil, err
@@ -84,9 +85,12 @@ func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 		query += " WHERE"
 		count := 0
 		for col, val := range filters {
+			col := pkg.CamelToSnake(col)
 			var clause string
 			if val == nil {
 				clause = fmt.Sprintf("%s IS NULL", col)
+			} else if val == "NOT NULL" {
+				clause = fmt.Sprintf("%s IS NOT NULL", col)
 			} else {
 				clause = fmt.Sprintf("%s = ?", col)
 				args = append(args, val)

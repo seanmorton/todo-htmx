@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/seanmorton/todo-htmx/internal/app"
 	"github.com/seanmorton/todo-htmx/internal/data"
+	"github.com/seanmorton/todo-htmx/internal/handlers"
 )
 
 //go:embed public
@@ -37,7 +37,7 @@ func main() {
 	dbConn.Exec("PRAGMA foreign_keys = ON;")
 
 	db := data.NewDB(dbConn)
-	server := app.NewServer(db, tz)
+	server := handlers.NewServer(db, tz)
 
 	slog.Info("starting server...")
 	err = server.Start(port, publicDir)

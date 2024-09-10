@@ -1,4 +1,4 @@
-package app
+package handlers
 
 //"github.com/seanmorton/todo-htmx/internal/domain"
 //"github.com/seanmorton/todo-htmx/internal/templates"

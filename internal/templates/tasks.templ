@@ -4,6 +4,7 @@ import (
   "fmt"
 
   "github.com/seanmorton/todo-htmx/internal/domain"
+  "github.com/seanmorton/todo-htmx/pkg"
 )
 
 templ Tasks(tasks []domain.Task, projects []domain.Project, filters map[string]any) {
@@ -16,7 +17,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, filters map[string]a
         >{ project.Name }</option>
       }
     </select>
-    <input type="checkbox" name="completed" hx-on:change="onFilterChange()"></input>
+    <input type="checkbox" name="completed" autocomplete="off" hx-on:change="onFilterChange()"></input>
     <label for="completed">Completed</label>
   </form>
 
@@ -66,7 +67,10 @@ templ TaskRows(tasks []domain.Task) {
         <h4>{ task.Title }</h4>
       </div>
       if task.DueDate != nil {
-        <p>Due: { task.DueDateStr() }</p>
+        <p>Due: { pkg.DateStr(task.DueDate) }</p>
+      }
+      if task.CompletedAt != nil {
+        <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>
       }
       if !task.Done() {
         <button
@@ -92,7 +96,7 @@ templ TaskForm(task domain.Task, projects []domain.Project) {
           hx-post="/tasks"
           hx-target="#taskList"
           hx-swap="beforeend"
-          hx-on::after-request="document.getElementById('taskForm').innerHTML='';"
+          hx-on::after-request="console.log(event); if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
         >
           @TaskFields(task, task.GetRecurPolicy(), projects)
           <br />
@@ -102,14 +106,14 @@ templ TaskForm(task domain.Task, projects []domain.Project) {
         <form
           hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }
           hx-target={ fmt.Sprintf("#task-%d", task.Id) }
-          hx-on::after-request="document.getElementById('taskForm').innerHTML='';"
+          hx-on::after-request="console.log(event); document.getElementById('taskForm').innerHTML='';"
         >
           @TaskFields(task, task.GetRecurPolicy(), projects)
           <br />
-          <button type="submit">Save</button>
+          <button type="submit" disabled?={ task.Done() }>Save</button>
         </form>
       }
-      <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Cancel</button>
+      <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
     </div>
   </div>
 }
@@ -138,7 +142,7 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
     <label>DueDate</label>
     <input type="date" name="dueDate"
       if task.DueDate != nil {
-        value={ task.DueDateStr() }
+        value={ pkg.DateStr(task.DueDate) }
       }
     />
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -82,7 +83,10 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	s.applyTaskReq(&task, r)
+	validationErr := s.applyTaskReq(&task, r)
+	if validationErr != nil {
+		return &httpErr{validationErr.Error(), 400, validationErr}
+	}
 
 	task, err := s.db.CreateTask(task)
 	if err != nil {
@@ -180,7 +184,13 @@ func (s *Server) retrieveTask(r *http.Request) (domain.Task, *httpErr) {
 	return *task, nil
 }
 
-func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {
+func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
+	title := r.FormValue("title")
+	if title == "" {
+		return errors.New("title is required")
+	}
+	task.Title = title
+
 	projectIdStr := r.FormValue("projectId")
 	if projectIdStr != "" {
 		projectId, _ := strconv.ParseInt(projectIdStr, 10, 64)
@@ -196,8 +206,6 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {
 	} else {
 		task.AssigneeId = nil
 	}
-
-	task.Title = r.FormValue("title")
 
 	description := r.FormValue("description")
 	if description != "" {
@@ -218,6 +226,12 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {
 	recurPolicyNStr := r.FormValue("recurPolicyN")
 	if recurPolicyType != "" && recurPolicyNStr != "" {
 		recurPolicyN, _ := strconv.ParseInt(recurPolicyNStr, 10, 64)
+		if recurPolicyN < 1 {
+			return errors.New("days must be greater than 0")
+		} else if recurPolicyType == domain.RPDayOfMonth && recurPolicyN > 28 {
+			return errors.New("day of month cannot be greater than 28")
+		}
+
 		recurPolicy := domain.RecurPolicy{
 			Type: recurPolicyType,
 			N:    recurPolicyN,
@@ -226,4 +240,6 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {
 	} else {
 		task.RecurPolicy = nil
 	}
+
+	return nil
 }

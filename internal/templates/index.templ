@@ -1,5 +1,7 @@
 package templates
 
+import "fmt"
+
 templ Index(content templ.Component) {
   <!DOCTYPE html>
   <html>
@@ -17,15 +19,13 @@ templ Index(content templ.Component) {
       <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"/>
       <link rel="stylesheet" href="/public/styles.css"/>
 
-      <script src="https://unpkg.com/htmx.org@1.9.10"
-              integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-              crossorigin="anonymous">
-      </script>
+      <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
       <script src="https://unpkg.com/pulltorefreshjs"></script>
     </head>
     <body>
       <span id="loading" class="loader"></span>
       <main>
+        <div id="alert"></div>
         @content
       </main>
       <script>
@@ -34,6 +34,21 @@ templ Index(content templ.Component) {
         }
         PullToRefresh.init();
       </script>
+      <script>
+        document.body.addEventListener("htmx:beforeSwap", function(evt) {
+          console.log("BEFORE SWAP", evt.detail)
+          evt.detail.shouldSwap = true;
+          // evt.detail.isError = false;
+        });
+      </script>
     </body>
   </html>
+}
+
+templ Error(message string) {
+  <div id="alert" class="overlay" hx-swap-oob="true">
+      { fmt.Sprintf("Error: %s", message) }
+      <br />
+      <button hx-on:click="document.getElementById('alert').style.display='none';">OK</button>
+  </div>
 }

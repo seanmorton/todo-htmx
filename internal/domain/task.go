@@ -27,13 +27,6 @@ type RecurPolicy struct {
 	N    int64  `json:"n"`
 }
 
-func (t *Task) DueDateStr() string {
-	if t.DueDate == nil {
-		return ""
-	}
-	return t.DueDate.Format(time.DateOnly)
-}
-
 func (t *Task) Done() bool {
 	return t.CompletedAt != nil
 }

@@ -28,7 +28,8 @@ type handler func(http.ResponseWriter, *http.Request) *httpErr
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := h(w, r); err != nil {
 		slog.Error(err.Message, "code", err.Code, "cause", err.Cause)
-		http.Error(w, err.Message, err.Code)
+		w.WriteHeader(err.Code)
+		templates.Error(err.Message).Render(r.Context(), w)
 	}
 }
 

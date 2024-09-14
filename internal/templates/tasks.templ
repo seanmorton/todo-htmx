@@ -11,24 +11,26 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, filters map[string]a
     <select id="projectSelect" name="projectId" autocomplete="off" hx-on:change="onFilterChange()">
       <option value="">All Projects</option>
       for _, project := range projects {
-        if filters["projectId"] != nil && filters["projectId"] == project.Id {
-          <option value={ fmt.Sprintf("%d", project.Id) } selected>{ project.Name }</option>
-        } else {
-          <option value={ fmt.Sprintf("%d", project.Id) }>{ project.Name }</option>
-        }
+        <option value={ fmt.Sprintf("%d", project.Id) }
+          selected?={ filters["projectId"] != nil && filters["projectId"] == project.Id }
+        >{ project.Name }</option>
       }
     </select>
     <input type="checkbox" name="completed" hx-on:change="onFilterChange()"></input>
     <label for="completed">Completed</label>
   </form>
+
   <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", filters["projectId"]) } hx-target="#taskForm">
     New Task
   </button>
   <hr />
+
   <div id="taskList" hx-get="/tasks/list" hx-trigger="taskChange from:body, taskFilterChange from:#taskFilters">
     @TaskRows(tasks)
   </div>
+
   <div id="taskForm"></div>
+
   <script>
     function onFilterChange() {
       const form = htmx.find("#taskFilters");
@@ -61,7 +63,7 @@ templ TaskRows(tasks []domain.Task) {
   for _, task := range tasks {
     <div id={ fmt.Sprintf("task-%d", task.Id) }>
       <div hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">
-        <h4>{task.Title}</h4>
+        <h4>{ task.Title }</h4>
       </div>
       if task.DueDate != nil {
         <p>Due: { task.DueDateStr() }</p>
@@ -120,11 +122,9 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
     <select name="projectId">
       <option value=""></option>
       for _, project := range projects {
-        if task.ProjectId != nil && *task.ProjectId == project.Id {
-          <option value={ fmt.Sprintf("%d", project.Id) } selected>{ project.Name }</option>
-        } else {
-          <option value={ fmt.Sprintf("%d", project.Id) }>{ project.Name }</option>
-        }
+        <option value={ fmt.Sprintf("%d", project.Id) }
+          selected?={ task.ProjectId != nil && *task.ProjectId == project.Id }
+        >{ project.Name }</option>
       }
     </select>
 
@@ -136,11 +136,11 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
     }
 
     <label>DueDate</label>
-    if task.DueDate != nil {
-      <input type="date" name="dueDate" value={ task.DueDateStr() } />
-    } else {
-      <input type="date" name="dueDate" />
-    }
+    <input type="date" name="dueDate"
+      if task.DueDate != nil {
+        value={ task.DueDateStr() }
+      }
+    />
 
     <label>Repeat?</label>
     <select name="recurPolicyType">

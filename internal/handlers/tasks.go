@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -213,10 +214,16 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) {
 		task.DueDate = nil
 	}
 
-	// TODO add input support for recur policy
-	//recurPolicy := domain.RecurPolicy{
-	//	Type: domain.RPDaysAfterComplete,
-	//	N:    30,
-	//}
-	//task.RecurPolicy, _ = json.Marshal(recurPolicy)
+	recurPolicyType := r.FormValue("recurPolicyType")
+	recurPolicyNStr := r.FormValue("recurPolicyN")
+	if recurPolicyType != "" && recurPolicyNStr != "" {
+		recurPolicyN, _ := strconv.ParseInt(recurPolicyNStr, 10, 64)
+		recurPolicy := domain.RecurPolicy{
+			Type: recurPolicyType,
+			N:    recurPolicyN,
+		}
+		task.RecurPolicy, _ = json.Marshal(recurPolicy)
+	} else {
+		task.RecurPolicy = nil
+	}
 }

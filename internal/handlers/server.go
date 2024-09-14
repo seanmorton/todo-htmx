@@ -32,7 +32,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO SSE for new tasks
 func NewServer(db data.DB, tz *time.Location) Server {
 	return Server{db: db, tz: tz}
 }

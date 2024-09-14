@@ -92,9 +92,9 @@ templ TaskForm(task domain.Task, projects []domain.Project) {
           hx-swap="beforeend"
           hx-on::after-request="document.getElementById('taskForm').innerHTML='';"
         >
-          @TaskFields(task, projects)
-          <button type="submit">Create</button>
+          @TaskFields(task, task.GetRecurPolicy(), projects)
           <br />
+          <button type="submit">Create</button>
         </form>
       } else {
         <form
@@ -102,17 +102,17 @@ templ TaskForm(task domain.Task, projects []domain.Project) {
           hx-target={ fmt.Sprintf("#task-%d", task.Id) }
           hx-on::after-request="document.getElementById('taskForm').innerHTML='';"
         >
-          @TaskFields(task, projects)
+          @TaskFields(task, task.GetRecurPolicy(), projects)
           <br />
           <button type="submit">Save</button>
         </form>
       }
-      <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
+      <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Cancel</button>
     </div>
   </div>
 }
 
-templ TaskFields(task domain.Task, projects []domain.Project) {
+templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []domain.Project) {
     <label>Title</label>
     <input type="text" name="title" value={ task.Title } />
 
@@ -141,4 +141,20 @@ templ TaskFields(task domain.Task, projects []domain.Project) {
     } else {
       <input type="date" name="dueDate" />
     }
+
+    <label>Repeat?</label>
+    <select name="recurPolicyType">
+      <option value="">No Repeat</option>
+      <option value={ domain.RPDaysAfterComplete }
+        selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDaysAfterComplete }
+      >Days After Completion</option>
+      <option value={ domain.RPDayOfMonth }
+        selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDayOfMonth }
+      >Day of Month</option>
+    </select>
+    <input type="number" name="recurPolicyN"
+      if recurPolicy != nil {
+        value={ fmt.Sprintf("%d", recurPolicy.N) }
+      }
+    />
 }

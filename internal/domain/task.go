@@ -24,7 +24,7 @@ const (
 
 type RecurPolicy struct {
 	Type string `json:"type"`
-	N    int    `json:"n"`
+	N    int64  `json:"n"`
 }
 
 func (t *Task) DueDateStr() string {
@@ -38,19 +38,30 @@ func (t *Task) Done() bool {
 	return t.CompletedAt != nil
 }
 
-func (t *Task) NextRecurDate() *time.Time {
-	if t.RecurPolicy == nil || t.CompletedAt == nil {
+func (t *Task) GetRecurPolicy() *RecurPolicy {
+	if t.RecurPolicy == nil || len(t.RecurPolicy) == 0 {
 		return nil
 	}
 	rp := RecurPolicy{}
 	_ = json.Unmarshal(t.RecurPolicy, &rp)
+	return &rp
+}
+
+func (t *Task) NextRecurDate() *time.Time {
+	if t.CompletedAt == nil {
+		return nil
+	}
+	rp := t.GetRecurPolicy()
+	if rp == nil {
+		return nil
+	}
 
 	var next time.Time
 	switch rp.Type {
 	case RPDaysAfterComplete:
-		next = t.CompletedAt.AddDate(0, 0, rp.N)
+		next = t.CompletedAt.AddDate(0, 0, int(rp.N))
 	case RPDayOfMonth:
-		next = t.CompletedAt.AddDate(0, 1, (-t.CreatedAt.Day() + rp.N))
+		next = t.CompletedAt.AddDate(0, 1, (-t.CompletedAt.Day() + int(rp.N)))
 	}
 	return &next
 }

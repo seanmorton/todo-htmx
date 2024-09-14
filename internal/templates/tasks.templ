@@ -7,14 +7,22 @@ import (
   "github.com/seanmorton/todo-htmx/pkg"
 )
 
-templ Tasks(tasks []domain.Task, projects []domain.Project, filters map[string]any) {
+templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filters map[string]any) {
   <form id="taskFilters">
-    <select id="projectSelect" name="projectId" autocomplete="off" hx-on:change="onFilterChange()">
+    <select name="projectId" autocomplete="off" hx-on:change="onFilterChange()">
       <option value="">All Projects</option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
           selected?={ filters["projectId"] != nil && filters["projectId"] == project.Id }
         >{ project.Name }</option>
+      }
+    </select>
+    <select name="assigneeId" autocomplete="off" hx-on:change="onFilterChange()">
+      <option value="">All Assignees</option>
+      for _, user := range users {
+        <option value={ fmt.Sprintf("%d", user.Id) }
+          selected?={ filters["assigneeId"] != nil && filters["assigneeId"] == user.Id }
+        >{ user.Name }</option>
       }
     </select>
     <input type="checkbox" name="completed" autocomplete="off" hx-on:change="onFilterChange()"></input>
@@ -36,20 +44,30 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, filters map[string]a
     function onFilterChange() {
       const form = htmx.find("#taskFilters");
       const projectId = htmx.find("#taskFilters>select[name=projectId]").value;
+      const assigneeId = htmx.find("#taskFilters>select[name=assigneeId]").value;
       const completed = htmx.find("#taskFilters>input[name=completed]").checked;
-      const filters = { projectId, completed };
+      const filters = { projectId, assigneeId, completed };
+      console.log(completed);
 
       // Update query parms for list
       let listPath = "/tasks/list?";
       for (let [k, v] of Object.entries(filters)) {
-        listPath += `${k}=${v}&`
+        if (v == false || v != "") {
+          listPath += `${k}=${v}&`
+        }
       }
       const taskList = htmx.find("#taskList");
       taskList.setAttribute("hx-get", listPath);
       htmx.process(taskList);
 
       // Prefill projectId on newTask form
-      const newPath = "/tasks/new?projectId=" + projectId;
+      let newPath = "/tasks/new?";
+      if (projectId != "") {
+        newPath += `projectId=${projectId}&`
+      }
+      if (assigneeId != "") {
+        newPath += `assigneeId=${assigneeId}&`
+      }
       const taskNew = htmx.find("#taskNew");
       taskNew.setAttribute("hx-get", newPath);
       htmx.process(taskNew);
@@ -88,39 +106,40 @@ templ TaskRows(tasks []domain.Task) {
   }
 }
 
-templ TaskForm(task domain.Task, projects []domain.Project) {
+templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User) {
   <div id="taskForm">
     <div class="overlay">
-      if task.Id == 0 {
-        <form
+      <form
+        if task.Id == 0 {
           hx-post="/tasks"
-          hx-target="#taskList"
-          hx-swap="beforeend"
-          hx-on::after-request="console.log(event); if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
-        >
-          @TaskFields(task, task.GetRecurPolicy(), projects)
-          <br />
-          <button type="submit">Create</button>
-        </form>
-      } else {
-        <form
+        } else {
           hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }
-          hx-target={ fmt.Sprintf("#task-%d", task.Id) }
-          hx-on::after-request="console.log(event); document.getElementById('taskForm').innerHTML='';"
-        >
-          @TaskFields(task, task.GetRecurPolicy(), projects)
-          <br />
-          <button type="submit" disabled?={ task.Done() }>Save</button>
-        </form>
-      }
+        }
+        hx-swap="none"
+        hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
+      >
+        @TaskFields(task, task.GetRecurPolicy(), projects, users)
+        <br />
+        <button type="submit" disabled?={ task.Done() }>Save</button>
+      </form>
       <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
     </div>
   </div>
 }
 
-templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []domain.Project) {
+templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []domain.Project, users []domain.User) {
     <label>Title</label>
     <input type="text" name="title" value={ task.Title } />
+
+    <label>Assignee</label>
+    <select name="assigneeId">
+      <option value=""></option>
+      for _, user := range users {
+        <option value={ fmt.Sprintf("%d", user.Id) }
+          selected?={ task.AssigneeId != nil && *task.AssigneeId == user.Id }
+        >{ user.Name }</option>
+      }
+    </select>
 
     <label>Project</label>
     <select name="projectId">
@@ -156,7 +175,7 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
         selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDayOfMonth }
       >Day of Month</option>
     </select>
-    <input type="number" name="recurPolicyN"
+    <input type="number" name="recurPolicyN" min="1"
       if recurPolicy != nil {
         value={ fmt.Sprintf("%d", recurPolicy.N) }
       }

@@ -10,8 +10,8 @@ import (
 
 func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
 	result, err := d.dbConn.Exec(
-		"INSERT INTO tasks(title, project_id, description, due_date, completed_at, recur_policy) VALUES(?, ?, ?, ?, ?, ?)",
-		task.Title, task.ProjectId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy,
+		"INSERT INTO tasks(title, project_id, assignee_id, description, due_date, completed_at, recur_policy) VALUES(?, ?, ?, ?, ?, ?, ?)",
+		task.Title, task.ProjectId, task.AssigneeId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy,
 	)
 	if err != nil {
 		return domain.Task{}, err
@@ -42,9 +42,9 @@ func (d *DB) GetTask(id int64) (*domain.Task, error) {
 func (d *DB) UpdateTask(task domain.Task) (*domain.Task, error) {
 	res, err := d.dbConn.Exec(
 		`UPDATE tasks
-     SET title = ?, project_id = ?, description = ?, due_date = ?, recur_policy = ?, completed_at = ?
+     SET title = ?, project_id = ?, assignee_id = ?, description = ?, due_date = ?, recur_policy = ?, completed_at = ?
      WHERE id = ?`,
-		task.Title, task.ProjectId, task.Description, task.DueDate, task.RecurPolicy, task.CompletedAt, task.Id,
+		task.Title, task.ProjectId, task.AssigneeId, task.Description, task.DueDate, task.RecurPolicy, task.CompletedAt, task.Id,
 	)
 	if err != nil {
 		return nil, err

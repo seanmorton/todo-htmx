@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
@@ -16,6 +17,10 @@ func getTaskFilters(r *http.Request) map[string]any {
 	projectId := r.URL.Query().Get("projectId")
 	if projectId != "" {
 		filters["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
+	}
+	assigneeId := r.URL.Query().Get("assigneeId")
+	if assigneeId != "" {
+		filters["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
 	}
 	completed := r.URL.Query().Get("completed")
 	if completed == "true" {
@@ -37,8 +42,12 @@ func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
+	users, err := s.db.ListUsers()
+	if err != nil {
+		return &httpErr{"failed getting users", 500, err}
+	}
 
-	s.hxRender(w, r, templates.Tasks(tasks, projects, filters))
+	s.hxRender(w, r, templates.Tasks(tasks, projects, users, filters))
 	return nil
 }
 
@@ -57,12 +66,17 @@ func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
 	s.applyTaskReq(&task, r)
 
+	users, err := s.db.ListUsers()
+	if err != nil {
+		return &httpErr{"failed getting users", 500, err}
+	}
+
 	projects, err := s.db.ListProjects()
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskForm(task, projects))
+	s.hxRender(w, r, templates.TaskForm(task, projects, users))
 	return nil
 }
 
@@ -72,12 +86,17 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return retrieveErr
 	}
 
+	users, err := s.db.ListUsers()
+	if err != nil {
+		return &httpErr{"failed getting users", 500, err}
+	}
+
 	projects, err := s.db.ListProjects()
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
 
-	s.hxRender(w, r, templates.TaskForm(task, projects))
+	s.hxRender(w, r, templates.TaskForm(task, projects, users))
 	return nil
 }
 
@@ -103,8 +122,11 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	if retrieveErr != nil {
 		return retrieveErr
 	}
+	validationErr := s.applyTaskReq(&task, r)
+	if validationErr != nil {
+		return &httpErr{validationErr.Error(), 400, validationErr}
+	}
 
-	s.applyTaskReq(&task, r)
 	res, err := s.db.UpdateTask(task)
 	if err != nil {
 		return &httpErr{"failed updating task", 500, err}
@@ -185,9 +207,10 @@ func (s *Server) retrieveTask(r *http.Request) (domain.Task, *httpErr) {
 }
 
 func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
+	var errMessages []string
 	title := r.FormValue("title")
 	if title == "" {
-		return errors.New("title is required")
+		errMessages = append(errMessages, "title is required")
 	}
 	task.Title = title
 
@@ -227,9 +250,9 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
 	if recurPolicyType != "" && recurPolicyNStr != "" {
 		recurPolicyN, _ := strconv.ParseInt(recurPolicyNStr, 10, 64)
 		if recurPolicyN < 1 {
-			return errors.New("days must be greater than 0")
+			errMessages = append(errMessages, "days must be greater than 0")
 		} else if recurPolicyType == domain.RPDayOfMonth && recurPolicyN > 28 {
-			return errors.New("day of month cannot be greater than 28")
+			errMessages = append(errMessages, "day of month cannot be greater than 28")
 		}
 
 		recurPolicy := domain.RecurPolicy{
@@ -239,6 +262,10 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
 		task.RecurPolicy, _ = json.Marshal(recurPolicy)
 	} else {
 		task.RecurPolicy = nil
+	}
+
+	if errMessages != nil {
+		return errors.New(strings.Join(errMessages, "; "))
 	}
 
 	return nil

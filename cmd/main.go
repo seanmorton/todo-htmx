@@ -17,7 +17,7 @@ import (
 var publicDir embed.FS
 
 func main() {
-	tz, _ := time.LoadLocation("America/Chicago") // TODO configure or use client tz
+	tz, _ := time.LoadLocation("America/Chicago")
 
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {

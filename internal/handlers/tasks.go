@@ -228,15 +228,16 @@ func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
 	title := r.FormValue("title")
 	if title == "" {
 		errMessages = append(errMessages, "title is required")
+	} else {
+		task.Title = title
 	}
-	task.Title = title
 
 	projectIdStr := r.FormValue("projectId")
-	if projectIdStr != "" {
-		projectId, _ := strconv.ParseInt(projectIdStr, 10, 64)
-		task.ProjectId = &projectId
+	if projectIdStr == "" {
+		errMessages = append(errMessages, "project is required")
 	} else {
-		task.ProjectId = nil
+		projectId, _ := strconv.ParseInt(projectIdStr, 10, 64)
+		task.ProjectId = projectId
 	}
 
 	assigneeIdStr := r.FormValue("assigneeId")

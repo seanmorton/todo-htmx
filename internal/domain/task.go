@@ -7,7 +7,7 @@ import (
 
 type Task struct {
 	Id          int64      `json:"id"`
-	ProjectId   *int64     `json:"ProjectId"`
+	ProjectId   int64      `json:"ProjectId"`
 	AssigneeId  *int64     `json:"assignee_id"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`

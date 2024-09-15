@@ -151,7 +151,7 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
       <option value=""></option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ task.ProjectId != nil && *task.ProjectId == project.Id }
+          selected?={ task.ProjectId == project.Id }
         >{ project.Name }</option>
       }
     </select>

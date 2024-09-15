@@ -12,7 +12,7 @@ CREATE TABLE projects (
 
 CREATE TABLE tasks (
   id            INTEGER     PRIMARY KEY,
-  project_id    INTEGER     REFERENCES projects(id) ON DELETE CASCADE,
+  project_id    INTEGER     REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   assignee_id   INTEGER     REFERENCES users(id) ON DELETE SET NULL,
   title         TEXT        NOT NULL,
   description   TEXT,

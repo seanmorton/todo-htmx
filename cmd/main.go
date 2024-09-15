@@ -17,7 +17,11 @@ import (
 var publicDir embed.FS
 
 func main() {
-	tz, _ := time.LoadLocation("America/Chicago")
+	tz, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		slog.Error("failed loading timezone location", "err", err)
+		os.Exit(1)
+	}
 
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {
@@ -33,6 +37,7 @@ func main() {
 	defer dbConn.Close()
 	if err != nil {
 		slog.Error("failed opening db", "err", err)
+		os.Exit(1)
 	}
 	dbConn.Exec("PRAGMA foreign_keys = ON;")
 
@@ -43,5 +48,6 @@ func main() {
 	err = server.Start(port, publicDir)
 	if err != nil {
 		slog.Error("failed to start server", "err", err)
+		os.Exit(1)
 	}
 }

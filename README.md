@@ -16,5 +16,6 @@ Yet another personal todo app written with go templ+htmx. I used to use Asana fo
     * stays at top, no due date
 * Design
     * support more hx-push-url for consistent reload experience
+    * switch to https://gitlab.com/cznic/sqlite to avoid cgo
 * Config
     * user timezone for displaying time

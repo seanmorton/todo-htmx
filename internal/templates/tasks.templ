@@ -80,7 +80,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
 
 templ TaskRows(tasks []domain.Task) {
   for _, task := range tasks {
-    <div id={ fmt.Sprintf("task-%d", task.Id) }>
+    <div>
       <div hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">
         <h4>{ task.Title }</h4>
       </div>
@@ -93,13 +93,18 @@ templ TaskRows(tasks []domain.Task) {
       if !task.Done() {
         <button
           hx-post={ fmt.Sprintf("/tasks/%d/complete", task.Id) }
-          hx-on::after-request="this.parentElement.remove();"
+          hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
         >✅</button>
+      } else {
+        <button
+          hx-post={ fmt.Sprintf("/tasks/%d/incomplete", task.Id) }
+          hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
+        >☑️</button>
       }
       <button
         hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
         hx-confirm="Are you sure you want to delete this task?"
-        hx-on::after-request="this.parentElement.remove();"
+        hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
       >❌</button>
       <hr />
     </div>

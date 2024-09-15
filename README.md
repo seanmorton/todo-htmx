@@ -2,7 +2,7 @@
 Yet another personal todo app written with go templ+htmx. I used to use Asana for personal stuff, but it's UI has gotten too cluttered and I wanted to learn more htmx.
 
 ## TODO
-* Incomplete task action
+* Search
 * Users/Assignees
     * profile pictures for assignee bubbles on tasks
     * username/pass

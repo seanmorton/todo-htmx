@@ -173,6 +173,23 @@ func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
+func (s *Server) incompleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
+	task, retrieveErr := s.retrieveTask(r)
+	if retrieveErr != nil {
+		return retrieveErr
+	}
+
+	task.CompletedAt = nil
+	_, err := s.db.UpdateTask(task)
+	if err != nil {
+		return &httpErr{"failed incompleting task", 500, err}
+	}
+
+	s.hxEvent(w, "taskChange")
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
 func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {

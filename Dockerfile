@@ -7,8 +7,7 @@ RUN go mod download && go mod verify
 RUN go install github.com/a-h/templ/cmd/templ@v0.2.778
 
 COPY . .
-RUN go generate ./... && go build -v -o /usr/local/bin/app ./cmd
-
+RUN go generate ./... && CGO_ENABLED=0 go build -v -o /usr/local/bin/app ./cmd
 
 FROM alpine:3.20.3
 EXPOSE 8080

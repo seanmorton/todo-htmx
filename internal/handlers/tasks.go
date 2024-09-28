@@ -12,29 +12,8 @@ import (
 	"github.com/seanmorton/todo-htmx/internal/templates"
 )
 
-func getTaskFilters(r *http.Request) map[string]any {
-	filters := map[string]any{}
-	projectId := r.URL.Query().Get("projectId")
-	if projectId != "" {
-		filters["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
-	}
-	assigneeId := r.URL.Query().Get("assigneeId")
-	if assigneeId != "" {
-		filters["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
-	}
-	completed := r.URL.Query().Get("completed")
-	if completed == "true" {
-		filters["completed_at"] = "NOT NULL"
-	} else {
-		filters["completed_at"] = nil
-	}
-
-	return filters
-}
-
 func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
-	filters := getTaskFilters(r)
-	tasks, err := s.db.QueryTasks(filters)
+	tasks, filters, err := s.fetchTasks(r)
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
@@ -52,8 +31,7 @@ func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
 }
 
 func (s *Server) taskList(w http.ResponseWriter, r *http.Request) *httpErr {
-	filters := getTaskFilters(r)
-	tasks, err := s.db.QueryTasks(filters)
+	tasks, _, err := s.fetchTasks(r)
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
@@ -81,7 +59,7 @@ func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 }
 
 func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	task, retrieveErr := s.retrieveTask(r)
+	task, retrieveErr := s.fetchTask(r)
 	if retrieveErr != nil {
 		return retrieveErr
 	}
@@ -118,7 +96,7 @@ func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 }
 
 func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	task, retrieveErr := s.retrieveTask(r)
+	task, retrieveErr := s.fetchTask(r)
 	if retrieveErr != nil {
 		return retrieveErr
 	}
@@ -141,7 +119,7 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 }
 
 func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	task, retrieveErr := s.retrieveTask(r)
+	task, retrieveErr := s.fetchTask(r)
 	if retrieveErr != nil {
 		return retrieveErr
 	}
@@ -174,7 +152,7 @@ func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
 }
 
 func (s *Server) incompleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
-	task, retrieveErr := s.retrieveTask(r)
+	task, retrieveErr := s.fetchTask(r)
 	if retrieveErr != nil {
 		return retrieveErr
 	}
@@ -208,7 +186,32 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
-func (s *Server) retrieveTask(r *http.Request) (domain.Task, *httpErr) {
+// helpers
+
+// TODO use https://github.com/gorilla/schema
+func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, map[string]any, error) {
+	filters := map[string]any{}
+	projectId := r.URL.Query().Get("projectId")
+	if projectId != "" {
+		filters["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
+	}
+	assigneeId := r.URL.Query().Get("assigneeId")
+	if assigneeId != "" {
+		filters["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
+	}
+	completed := r.URL.Query().Get("completed")
+	if completed == "true" {
+		filters["completed_at"] = "NOT NULL"
+	} else {
+		filters["completed_at"] = nil
+	}
+	nextMonthOnly := r.URL.Query().Get("nextMonth")
+	tasks, err := s.db.QueryTasks(filters, nextMonthOnly != "false")
+
+	return tasks, filters, err
+}
+
+func (s *Server) fetchTask(r *http.Request) (domain.Task, *httpErr) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		return domain.Task{}, &httpErr{"invalid id", 400, nil}

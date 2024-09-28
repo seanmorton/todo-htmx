@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
 	"github.com/seanmorton/todo-htmx/pkg"
@@ -78,7 +79,7 @@ func (d *DB) DeleteTask(id int64) (bool, error) {
 	return true, nil
 }
 
-func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
+func (d *DB) QueryTasks(filters map[string]any, nextMonthOnly bool) ([]domain.Task, error) {
 	query := "SELECT * FROM tasks"
 	args := make([]any, 0, len(filters))
 	if len(filters) > 0 {
@@ -103,6 +104,11 @@ func (d *DB) QueryTasks(filters map[string]any) ([]domain.Task, error) {
 			count++
 		}
 	}
+	if nextMonthOnly {
+		nextMonth := time.Now().AddDate(0, 1, 0)
+		query += fmt.Sprintf(" AND (due_date < '%s' OR due_date IS NULL)", pkg.DateStr(&nextMonth))
+	}
+
 	query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"
 
 	var tasks []domain.Task

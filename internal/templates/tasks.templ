@@ -2,10 +2,18 @@ package templates
 
 import (
   "fmt"
+  "time"
 
   "github.com/seanmorton/todo-htmx/internal/domain"
   "github.com/seanmorton/todo-htmx/pkg"
 )
+
+func dueDateClass(due time.Time) string {
+  if due.Before(time.Now()) {
+    return "red"
+  }
+  return ""
+}
 
 templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filters map[string]any) {
   <form id="taskFilters">
@@ -85,7 +93,7 @@ templ TaskRows(tasks []domain.Task) {
         <h4>{ task.Title }</h4>
       </div>
       if task.DueDate != nil {
-        <p>Due: { pkg.DateStr(task.DueDate) }</p>
+        <p class={ dueDateClass(*task.DueDate) }>Due: { pkg.DateStr(task.DueDate) }</p>
       }
       if task.CompletedAt != nil {
         <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>

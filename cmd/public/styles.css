@@ -44,7 +44,8 @@ h1,h2,h3,h4,h5 {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 800;
-  padding: 4rem;
+  overflow-y: scroll;
+  padding: 2rem;
   background: #404040;
   border: 2px solid;
   border-color: --accent;
@@ -62,7 +63,7 @@ h1,h2,h3,h4,h5 {
 
 @media only screen and (max-width: 500px) {
   .overlay {
-    position: absolute;
+    position: fixed;
     top: 0%;
     left: 0%;
     transform: none;

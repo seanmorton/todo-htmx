@@ -33,7 +33,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ user.Name }</option>
       }
     </select>
-    <input type="checkbox" name="completed" autocomplete="off" hx-on:change="onFilterChange()"></input>
+    <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onFilterChange()"></input>
     <label for="completed">Completed</label>
   </form>
 
@@ -134,8 +134,8 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
         @TaskFields(task, task.GetRecurPolicy(), projects, users)
         <br />
         <button type="submit" disabled?={ task.Done() }>Save</button>
+        <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
       </form>
-      <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
     </div>
   </div>
 }
@@ -156,7 +156,6 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
 
     <label>Project</label>
     <select name="projectId">
-      <option value=""></option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
           selected?={ task.ProjectId == project.Id }

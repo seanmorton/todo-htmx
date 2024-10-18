@@ -200,7 +200,7 @@ func (s *Server) fetchTasks(r *http.Request) (tasks []domain.Task, params map[st
 	} else {
 		params["completed_at"] = nil
 	}
-	nextMonthOnly := r.FormValue("nextMonth")
+	nextMonthOnly := r.FormValue("nextMonthOnly")
 	tasks, err = s.db.QueryTasks(params, nextMonthOnly != "false")
 
 	return

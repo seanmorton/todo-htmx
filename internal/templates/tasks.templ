@@ -26,6 +26,8 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ user.Name }</option>
       }
     </select>
+    <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
+    <label for="nextMonthOnly">Due next month</label>
     <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
     <label for="completed">Completed</label>
   </form>
@@ -47,7 +49,8 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       const projectId = htmx.find("#taskParams>select[name=projectId]").value;
       const assigneeId = htmx.find("#taskParams>select[name=assigneeId]").value;
       const completed = htmx.find("#taskParams>input[name=completed]").checked;
-      const params = { projectId, assigneeId, completed };
+      const nextMonthOnly = htmx.find("#taskParams>input[name=nextMonthOnly]").checked;
+      const params = { projectId, assigneeId, completed, nextMonthOnly };
 
       // Update query parms for list
       let queryPath = "/tasks/rows?";
@@ -82,11 +85,10 @@ templ TaskRows(tasks []domain.Task) {
     <div>
       <div hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">
         <h4>{ task.Title }</h4>
-        if task.DueDate != nil {
-          <p class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>Due: { pkg.DateStr(task.DueDate) }</p>
-        }
         if task.CompletedAt != nil {
           <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>
+        } else if task.DueDate != nil {
+          <p class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>Due: { pkg.DateStr(task.DueDate) }</p>
         }
       </div>
       if !task.Done() {

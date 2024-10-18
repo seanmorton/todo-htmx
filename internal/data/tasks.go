@@ -109,7 +109,11 @@ func (d *DB) QueryTasks(params map[string]any, nextMonthOnly bool) ([]domain.Tas
 		query += fmt.Sprintf(" AND (due_date < '%s' OR due_date IS NULL)", pkg.DateStr(&nextMonth))
 	}
 
-	query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"
+	if params["completed_at"] == "NOT NULL" {
+		query += " ORDER BY completed_at DESC"
+	} else {
+		query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"
+	}
 
 	var tasks []domain.Task
 	rows, err := d.dbConn.Query(query, args...)

@@ -53,11 +53,10 @@ h1,h2,h3,h4,h5 {
 
 #alert {
   color: red;
-  border-color: red;
   z-index: 900;
 }
 
-.red {
+.red-text {
   color: red;
 }
 

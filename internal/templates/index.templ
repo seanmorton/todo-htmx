@@ -45,7 +45,7 @@ templ Index(content templ.Component) {
 }
 
 templ Error(message string) {
-  <div id="alert" class="overlay" hx-swap-oob="true">
+  <div id="alert" class="notice overlay" hx-swap-oob="true">
       <p class="notice">{ fmt.Sprintf("Error: %s", message) }</p>
       <br />
       <button hx-on:click="document.getElementById('alert').style.display='none';">OK</button>

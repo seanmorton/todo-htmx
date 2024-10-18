@@ -8,64 +8,56 @@ import (
   "github.com/seanmorton/todo-htmx/pkg"
 )
 
-func dueDateClass(due time.Time) string {
-  if due.Before(time.Now()) {
-    return "red"
-  }
-  return ""
-}
-
-templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filters map[string]any) {
-  <form id="taskFilters">
-    <select name="projectId" autocomplete="off" hx-on:change="onFilterChange()">
+templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, params map[string]any) {
+  <form id="taskParams">
+    <select name="projectId" autocomplete="off" hx-on:change="onTaskParamChange()">
       <option value="">All Projects</option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ filters["projectId"] != nil && filters["projectId"] == project.Id }
+          selected?={ params["projectId"] != nil && params["projectId"] == project.Id }
         >{ project.Name }</option>
       }
     </select>
-    <select name="assigneeId" autocomplete="off" hx-on:change="onFilterChange()">
+    <select name="assigneeId" autocomplete="off" hx-on:change="onTaskParamChange()">
       <option value="">All Assignees</option>
       for _, user := range users {
         <option value={ fmt.Sprintf("%d", user.Id) }
-          selected?={ filters["assigneeId"] != nil && filters["assigneeId"] == user.Id }
+          selected?={ params["assigneeId"] != nil && params["assigneeId"] == user.Id }
         >{ user.Name }</option>
       }
     </select>
-    <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onFilterChange()"></input>
+    <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
     <label for="completed">Completed</label>
   </form>
 
-  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", filters["projectId"]) } hx-target="#taskForm">
+  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
     New Task
   </button>
   <hr />
 
-  <div id="taskList" hx-get="/tasks/list" hx-trigger="taskChange from:body, taskFilterChange from:#taskFilters">
+  <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body, taskParamChange from:#taskParams">
     @TaskRows(tasks)
   </div>
 
   <div id="taskForm"></div>
 
   <script>
-    function onFilterChange() {
-      const form = htmx.find("#taskFilters");
-      const projectId = htmx.find("#taskFilters>select[name=projectId]").value;
-      const assigneeId = htmx.find("#taskFilters>select[name=assigneeId]").value;
-      const completed = htmx.find("#taskFilters>input[name=completed]").checked;
-      const filters = { projectId, assigneeId, completed };
-      console.log(completed);
+    function onTaskParamChange() {
+      const form = htmx.find("#taskParams");
+      const projectId = htmx.find("#taskParams>select[name=projectId]").value;
+      const assigneeId = htmx.find("#taskParams>select[name=assigneeId]").value;
+      const completed = htmx.find("#taskParams>input[name=completed]").checked;
+      const params = { projectId, assigneeId, completed };
 
       // Update query parms for list
-      let listPath = "/tasks/list?";
-      for (let [k, v] of Object.entries(filters)) {
+      let queryPath = "/tasks/rows?";
+      for (let [k, v] of Object.entries(params)) {
         if (v == false || v != "") {
-          listPath += `${k}=${v}&`
+          queryPath += `${k}=${v}&`
         }
       }
       const taskList = htmx.find("#taskList");
-      taskList.setAttribute("hx-get", listPath);
+      taskList.setAttribute("hx-get", queryPath);
       htmx.process(taskList);
 
       // Prefill projectId on newTask form
@@ -80,24 +72,23 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       taskNew.setAttribute("hx-get", newPath);
       htmx.process(taskNew);
 
-      form.dispatchEvent(new Event("taskFilterChange"));
+      form.dispatchEvent(new Event("taskParamChange"));
     }
   </script>
 }
-
 
 templ TaskRows(tasks []domain.Task) {
   for _, task := range tasks {
     <div>
       <div hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">
         <h4>{ task.Title }</h4>
+        if task.DueDate != nil {
+          <p class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>Due: { pkg.DateStr(task.DueDate) }</p>
+        }
+        if task.CompletedAt != nil {
+          <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>
+        }
       </div>
-      if task.DueDate != nil {
-        <p class={ dueDateClass(*task.DueDate) }>Due: { pkg.DateStr(task.DueDate) }</p>
-      }
-      if task.CompletedAt != nil {
-        <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>
-      }
       if !task.Done() {
         <button
           hx-post={ fmt.Sprintf("/tasks/%d/complete", task.Id) }

@@ -1,19 +1,17 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
+	"github.com/seanmorton/todo-htmx/internal/serializers"
 	"github.com/seanmorton/todo-htmx/internal/templates"
 )
 
 func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
-	tasks, filters, err := s.fetchTasks(r)
+	tasks, params, err := s.fetchTasks(r)
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
@@ -26,11 +24,11 @@ func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed getting users", 500, err}
 	}
 
-	s.hxRender(w, r, templates.Tasks(tasks, projects, users, filters))
+	s.hxRender(w, r, templates.Tasks(tasks, projects, users, params))
 	return nil
 }
 
-func (s *Server) taskList(w http.ResponseWriter, r *http.Request) *httpErr {
+func (s *Server) taskRows(w http.ResponseWriter, r *http.Request) *httpErr {
 	tasks, _, err := s.fetchTasks(r)
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
@@ -42,7 +40,7 @@ func (s *Server) taskList(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	s.applyTaskReq(&task, r)
+	serializers.ParseTaskForm(&task, r, s.tz)
 
 	users, err := s.db.ListUsers()
 	if err != nil {
@@ -80,7 +78,7 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	validationErr := s.applyTaskReq(&task, r)
+	validationErr := serializers.ParseTaskForm(&task, r, s.tz)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}
@@ -100,7 +98,7 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	if retrieveErr != nil {
 		return retrieveErr
 	}
-	validationErr := s.applyTaskReq(&task, r)
+	validationErr := serializers.ParseTaskForm(&task, r, s.tz)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}
@@ -186,29 +184,26 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
-// helpers
-
-// TODO use https://github.com/gorilla/schema
-func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, map[string]any, error) {
-	filters := map[string]any{}
-	projectId := r.URL.Query().Get("projectId")
+func (s *Server) fetchTasks(r *http.Request) (tasks []domain.Task, params map[string]any, err error) {
+	params = map[string]any{}
+	projectId := r.FormValue("projectId")
 	if projectId != "" {
-		filters["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
+		params["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
 	}
-	assigneeId := r.URL.Query().Get("assigneeId")
+	assigneeId := r.FormValue("assigneeId")
 	if assigneeId != "" {
-		filters["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
+		params["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
 	}
-	completed := r.URL.Query().Get("completed")
+	completed := r.FormValue("completed")
 	if completed == "true" {
-		filters["completed_at"] = "NOT NULL"
+		params["completed_at"] = "NOT NULL"
 	} else {
-		filters["completed_at"] = nil
+		params["completed_at"] = nil
 	}
-	nextMonthOnly := r.URL.Query().Get("nextMonth")
-	tasks, err := s.db.QueryTasks(filters, nextMonthOnly != "false")
+	nextMonthOnly := r.FormValue("nextMonth")
+	tasks, err = s.db.QueryTasks(params, nextMonthOnly != "false")
 
-	return tasks, filters, err
+	return
 }
 
 func (s *Server) fetchTask(r *http.Request) (domain.Task, *httpErr) {
@@ -224,70 +219,4 @@ func (s *Server) fetchTask(r *http.Request) (domain.Task, *httpErr) {
 		return domain.Task{}, &httpErr{"task not found", 404, nil}
 	}
 	return *task, nil
-}
-
-func (s *Server) applyTaskReq(task *domain.Task, r *http.Request) error {
-	var errMessages []string
-	title := r.FormValue("title")
-	if title == "" {
-		errMessages = append(errMessages, "title is required")
-	} else {
-		task.Title = title
-	}
-
-	projectIdStr := r.FormValue("projectId")
-	if projectIdStr == "" {
-		errMessages = append(errMessages, "project is required")
-	} else {
-		projectId, _ := strconv.ParseInt(projectIdStr, 10, 64)
-		task.ProjectId = projectId
-	}
-
-	assigneeIdStr := r.FormValue("assigneeId")
-	if assigneeIdStr != "" {
-		assigneeId, _ := strconv.ParseInt(assigneeIdStr, 10, 64)
-		task.AssigneeId = &assigneeId
-	} else {
-		task.AssigneeId = nil
-	}
-
-	description := r.FormValue("description")
-	if description != "" {
-		task.Description = &description
-	} else {
-		task.Description = nil
-	}
-
-	dueDate := r.FormValue("dueDate")
-	if dueDate != "" {
-		parsed, _ := time.ParseInLocation(time.DateOnly, dueDate, s.tz)
-		task.DueDate = &parsed
-	} else {
-		task.DueDate = nil
-	}
-
-	recurPolicyType := r.FormValue("recurPolicyType")
-	recurPolicyNStr := r.FormValue("recurPolicyN")
-	if recurPolicyType != "" && recurPolicyNStr != "" {
-		recurPolicyN, _ := strconv.ParseInt(recurPolicyNStr, 10, 64)
-		if recurPolicyN < 1 {
-			errMessages = append(errMessages, "days must be greater than 0")
-		} else if recurPolicyType == domain.RPDayOfMonth && recurPolicyN > 28 {
-			errMessages = append(errMessages, "day of month cannot be greater than 28")
-		}
-
-		recurPolicy := domain.RecurPolicy{
-			Type: recurPolicyType,
-			N:    recurPolicyN,
-		}
-		task.RecurPolicy, _ = json.Marshal(recurPolicy)
-	} else {
-		task.RecurPolicy = nil
-	}
-
-	if errMessages != nil {
-		return errors.New(strings.Join(errMessages, "; "))
-	}
-
-	return nil
 }

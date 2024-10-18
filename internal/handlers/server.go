@@ -46,7 +46,7 @@ func (s *Server) Start(port string, publicDir embed.FS) error {
 	//http.HandleFunc("GET /projects", s.listProjects)
 
 	mux.Handle("GET /tasks", handler(s.tasks))
-	mux.Handle("GET /tasks/list", handler(s.taskList))
+	mux.Handle("GET /tasks/rows", handler(s.taskRows))
 	mux.Handle("GET /tasks/new", handler(s.newTask))
 	mux.Handle("GET /tasks/{id}", handler(s.getTask))
 	mux.Handle("POST /tasks", handler(s.createTask))

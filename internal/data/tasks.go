@@ -79,13 +79,13 @@ func (d *DB) DeleteTask(id int64) (bool, error) {
 	return true, nil
 }
 
-func (d *DB) QueryTasks(filters map[string]any, nextMonthOnly bool) ([]domain.Task, error) {
+func (d *DB) QueryTasks(params map[string]any, nextMonthOnly bool) ([]domain.Task, error) {
 	query := "SELECT * FROM tasks"
-	args := make([]any, 0, len(filters))
-	if len(filters) > 0 {
+	args := make([]any, 0, len(params))
+	if len(params) > 0 {
 		query += " WHERE"
 		count := 0
-		for col, val := range filters {
+		for col, val := range params {
 			col := pkg.CamelToSnake(col)
 			var clause string
 			if val == nil {

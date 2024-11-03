@@ -43,7 +43,10 @@ func (s *Server) Start(port string, publicDir embed.FS) error {
 
 	mux.Handle("/public/", http.FileServer(http.FS(publicDir)))
 
-	//http.HandleFunc("GET /projects", s.listProjects)
+	mux.Handle("GET /projects", handler(s.projects))
+	mux.Handle("GET /projects/rows", handler(s.projectRows))
+	mux.Handle("POST /projects", handler(s.createProject))
+	mux.Handle("DELETE /projects/{id}", handler(s.deleteProject))
 
 	mux.Handle("GET /tasks", handler(s.tasks))
 	mux.Handle("GET /tasks/rows", handler(s.taskRows))

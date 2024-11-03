@@ -1,0 +1,33 @@
+package templates
+
+import (
+  "fmt"
+
+  "github.com/seanmorton/todo-htmx/internal/domain"
+)
+
+templ Projects(projects []domain.Project) {
+  <form hx-post="/projects" hx-swap="none" hx-on::after-request="if (event.detail.successful) this.reset()">
+    <label>Name</label>
+    <input type="text" name="name" />
+    <br />
+    <button type="submit" >Create</button>
+  </form>
+  <div id="projectList" hx-get="/projects/rows" hx-trigger="projectChange from:body">
+    @ProjectRows(projects)
+  </div>
+}
+
+templ ProjectRows(projects []domain.Project) {
+  for _, project := range projects {
+    <div>
+      <h4>{ project.Name }</h4>
+      <button
+        hx-delete={ fmt.Sprintf("/projects/%d", project.Id) }
+        hx-confirm="Are you sure you want to delete this project? All tasks will be deleted along with it."
+        hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
+      >❌</button>
+      <hr />
+    </div>
+  }
+}

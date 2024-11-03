@@ -1,12 +1,12 @@
 CREATE TABLE users (
   id            INTEGER     PRIMARY KEY,
-  name          TEXT        NOT NULL,
+  name          TEXT        NOT NULL UNIQUE,
   created_at    TIMESTAMP   DEFAULT current_timestamp
 );
 
 CREATE TABLE projects (
   id            INTEGER     PRIMARY KEY,
-  name          TEXT        NOT NULL,
+  name          TEXT        NOT NULL UNIQUE,
   created_at    TIMESTAMP   DEFAULT current_timestamp
 );
 

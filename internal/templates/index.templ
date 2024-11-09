@@ -16,8 +16,8 @@ templ Index(content templ.Component) {
 
       <link rel="icon" type="image/png" href="/public/icons/16.png"/>
       <link rel="manifest" href="/public/manifest.json" />
-      <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css"/>
-      <link rel="stylesheet" href="/public/styles.css"/>
+      <link rel="stylesheet" href="https://unpkg.com/xp.css" />
+      <link rel="stylesheet" href="/public/styles.css" />
 
       <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
       <script src="https://unpkg.com/pulltorefreshjs"></script>
@@ -26,7 +26,17 @@ templ Index(content templ.Component) {
       <span id="loading" class="loader"></span>
       <main>
         <div id="alert" class="overlay" style="display: none;"></div>
-        @content
+        <div class="window">
+          <div class="title-bar">
+            <div class="title-bar-text">TODO</div>
+            <div class="title-bar-controls">
+              <button aria-label="Close"></button>
+            </div>
+          </div>
+          <div class="window-body">
+            @content
+          </div>
+        </div>
       </main>
       <script>
         if ("serviceWorker" in navigator) {

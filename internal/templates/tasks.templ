@@ -10,31 +10,40 @@ import (
 
 templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, params map[string]any) {
   <form id="taskParams">
-    <select name="projectId" autocomplete="off" hx-on:change="onTaskParamChange()">
-      <option value="">All Projects</option>
-      for _, project := range projects {
-        <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ params["projectId"] != nil && params["projectId"] == project.Id }
-        >{ project.Name }</option>
-      }
-    </select>
-    <select name="assigneeId" autocomplete="off" hx-on:change="onTaskParamChange()">
-      <option value="">All Assignees</option>
-      for _, user := range users {
-        <option value={ fmt.Sprintf("%d", user.Id) }
-          selected?={ params["assigneeId"] != nil && params["assigneeId"] == user.Id }
-        >{ user.Name }</option>
-      }
-    </select>
-    <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
-    <label for="nextMonthOnly">Due next month</label>
-    <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
-    <label for="completed">Completed</label>
-  </form>
+    <div class="field-row-stacked">
+      <select name="projectId" autocomplete="off" hx-on:change="onTaskParamChange()">
+        <option value="">All Projects</option>
+        for _, project := range projects {
+          <option value={ fmt.Sprintf("%d", project.Id) }
+            selected?={ params["projectId"] != nil && params["projectId"] == project.Id }
+          >{ project.Name }</option>
+        }
+      </select>
+    </div>
 
-  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
-    New Task
-  </button>
+    <div class="field-row-stacked">
+      <select name="assigneeId" autocomplete="off" hx-on:change="onTaskParamChange()">
+        <option value="">All Assignees</option>
+        for _, user := range users {
+          <option value={ fmt.Sprintf("%d", user.Id) }
+            selected?={ params["assigneeId"] != nil && params["assigneeId"] == user.Id }
+          >{ user.Name }</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-row">
+      <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
+      <label for="nextMonthOnly">Due next month</label>
+      &nbsp;
+      <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
+      <label for="completed">Completed</label>
+    </div>
+
+    <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
+      New Task
+    </button>
+  </form>
   <hr />
 
   <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body, taskParamChange from:#taskParams">
@@ -46,10 +55,10 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
   <script>
     function onTaskParamChange() {
       const form = htmx.find("#taskParams");
-      const projectId = htmx.find("#taskParams>select[name=projectId]").value;
-      const assigneeId = htmx.find("#taskParams>select[name=assigneeId]").value;
-      const completed = htmx.find("#taskParams>input[name=completed]").checked;
-      const nextMonthOnly = htmx.find("#taskParams>input[name=nextMonthOnly]").checked;
+      const projectId = htmx.find("#taskParams>div>select[name=projectId]").value;
+      const assigneeId = htmx.find("#taskParams>div>select[name=assigneeId]").value;
+      const completed = htmx.find("#taskParams>div>input[name=completed]").checked;
+      const nextMonthOnly = htmx.find("#taskParams>div>input[name=nextMonthOnly]").checked;
       const params = { projectId, assigneeId, completed, nextMonthOnly };
 
       // Update query parms for list
@@ -95,18 +104,18 @@ templ TaskRows(tasks []domain.Task) {
         <button
           hx-post={ fmt.Sprintf("/tasks/%d/complete", task.Id) }
           hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-        >✅</button>
+        >✅ Complete</button>
       } else {
         <button
           hx-post={ fmt.Sprintf("/tasks/%d/incomplete", task.Id) }
           hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-        >☑️</button>
+        >Uncomplete</button>
       }
       <button
         hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
         hx-confirm="Are you sure you want to delete this task?"
         hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-      >❌</button>
+      >❌ Delete</button>
       <hr />
     </div>
   }
@@ -114,75 +123,93 @@ templ TaskRows(tasks []domain.Task) {
 
 templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User) {
   <div id="taskForm">
-    <div class="overlay">
-      <form
-        if task.Id == 0 {
-          hx-post="/tasks"
-        } else {
-          hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }
-        }
-        hx-swap="none"
-        hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
-      >
-        @TaskFields(task, task.GetRecurPolicy(), projects, users)
-        <br />
-        <button type="submit" disabled?={ task.Done() }>Save</button>
-        <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
-      </form>
+    <div class="window overlay">
+      <div class="title-bar">
+        <div class="title-bar-text">New Task</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" hx-on:click="document.getElementById('taskForm').innerHTML='';"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <form
+          if task.Id == 0 {
+            hx-post="/tasks"
+          } else {
+            hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }
+          }
+          hx-swap="none"
+          hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
+        >
+          @TaskFields(task, task.GetRecurPolicy(), projects, users)
+          <button type="submit" disabled?={ task.Done() }>Save</button>
+        </form>
+      </div>
     </div>
   </div>
 }
 
 templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []domain.Project, users []domain.User) {
-    <label>Title</label>
-    <input type="text" name="title" value={ task.Title } required/>
+    <div class="field-row-stacked">
+      <label>Title</label>
+      <input type="text" name="title" value={ task.Title } required/>
+    </div>
 
-    <label>Assignee</label>
-    <select name="assigneeId">
-      <option value=""></option>
-      for _, user := range users {
-        <option value={ fmt.Sprintf("%d", user.Id) }
-          selected?={ task.AssigneeId != nil && *task.AssigneeId == user.Id }
-        >{ user.Name }</option>
+    <div class="field-row-stacked">
+      <label>Assignee</label>
+      <select name="assigneeId">
+        <option value=""></option>
+        for _, user := range users {
+          <option value={ fmt.Sprintf("%d", user.Id) }
+            selected?={ task.AssigneeId != nil && *task.AssigneeId == user.Id }
+          >{ user.Name }</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-row-stacked">
+      <label>Project</label>
+      <select name="projectId">
+        for _, project := range projects {
+          <option value={ fmt.Sprintf("%d", project.Id) }
+            selected?={ task.ProjectId == project.Id }
+          >{ project.Name }</option>
+        }
+      </select>
+    </div>
+
+    <div class="field-row-stacked">
+      <label>DueDate</label>
+      <input type="date" name="dueDate"
+        if task.DueDate != nil {
+          value={ pkg.DateStr(task.DueDate) }
+        }
+      />
+    </div>
+
+    <div class="field-row-stacked">
+      <label>Repeat?</label>
+      <select name="recurPolicyType">
+        <option value="">No Repeat</option>
+        <option value={ domain.RPDaysAfterComplete }
+          selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDaysAfterComplete }
+        >Days After Completion</option>
+        <option value={ domain.RPDayOfMonth }
+          selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDayOfMonth }
+        >Day of Month</option>
+      </select>
+      <input type="number" name="recurPolicyN" min="1"
+        if recurPolicy != nil {
+          value={ fmt.Sprintf("%d", recurPolicy.N) }
+        }
+      />
+    </div>
+
+    <div class="field-row-stacked">
+      <label>Description</label>
+      if task.Description != nil {
+        <textarea rows="6" name="description">{ *task.Description }</textarea>
+      } else {
+        <textarea rows="6" name="description"></textarea>
       }
-    </select>
-
-    <label>Project</label>
-    <select name="projectId">
-      for _, project := range projects {
-        <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ task.ProjectId == project.Id }
-        >{ project.Name }</option>
-      }
-    </select>
-
-    <label>Description</label>
-    if task.Description != nil {
-      <textarea rows="4" name="description">{ *task.Description }</textarea>
-    } else {
-      <textarea rows="4" name="description"></textarea>
-    }
-
-    <label>DueDate</label>
-    <input type="date" name="dueDate"
-      if task.DueDate != nil {
-        value={ pkg.DateStr(task.DueDate) }
-      }
-    />
-
-    <label>Repeat?</label>
-    <select name="recurPolicyType">
-      <option value="">No Repeat</option>
-      <option value={ domain.RPDaysAfterComplete }
-        selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDaysAfterComplete }
-      >Days After Completion</option>
-      <option value={ domain.RPDayOfMonth }
-        selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDayOfMonth }
-      >Day of Month</option>
-    </select>
-    <input type="number" name="recurPolicyN" min="1"
-      if recurPolicy != nil {
-        value={ fmt.Sprintf("%d", recurPolicy.N) }
-      }
-    />
+    </div>
 }

@@ -1,5 +1,7 @@
-:root {
-  --accent: green;
+html, body {
+  background-color: beige;
+  margin: 0;
+  padding: 0;
 }
 
 h1,h2,h3,h4,h5 {
@@ -40,15 +42,12 @@ h1,h2,h3,h4,h5 {
 }
 .overlay {
   position: fixed;
+  min-width: 250px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 800;
   overflow-y: scroll;
-  padding: 2rem;
-  background: #404040;
-  border: 2px solid;
-  border-color: --accent;
 }
 
 #alert {
@@ -58,6 +57,10 @@ h1,h2,h3,h4,h5 {
 
 .red-text {
   color: red;
+}
+
+button {
+  margin-top: 6px;
 }
 
 @media only screen and (max-width: 500px) {

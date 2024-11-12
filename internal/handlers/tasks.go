@@ -180,6 +180,7 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"task not found", 404, nil}
 	}
 
+	s.hxEvent(w, "taskChange")
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }

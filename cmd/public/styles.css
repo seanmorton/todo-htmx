@@ -2,11 +2,6 @@
   --accent: green;
 }
 
-h1,h2,h3,h4,h5 {
-  margin-bottom: 0.25rem;
-  margin-top: 0.25rem;
-}
-
 /* https://cssloaders.github.io/ */
 .loader{
   display:none;
@@ -55,9 +50,45 @@ h1,h2,h3,h4,h5 {
   color: red;
   z-index: 900;
 }
-
 .red-text {
   color: red;
+}
+
+.task-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-top: 1px solid;
+}
+.task-row h5 {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+
+.check-button, .check-button:hover {
+  background-color: inherit;
+}
+.check-button:before {
+  content: '✔️';
+}
+.check-button:hover:before {
+  content: '✅';
+}
+
+#taskNew {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  margin: 0px;
+  display: table-cell;
+  vertical-align: middle;
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  opacity: 0.9;
+  font-size: 1.5rem;
 }
 
 @media only screen and (max-width: 500px) {

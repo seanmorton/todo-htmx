@@ -9,6 +9,9 @@ import (
 )
 
 templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, params map[string]any) {
+  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
+  +
+  </button>
   <form id="taskParams">
     <select name="projectId" autocomplete="off" hx-on:change="onTaskParamChange()">
       <option value="">All Projects</option>
@@ -31,11 +34,6 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
     <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
     <label for="completed">Completed</label>
   </form>
-
-  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
-    New Task
-  </button>
-  <hr />
 
   <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body, taskParamChange from:#taskParams">
     @TaskRows(tasks)
@@ -83,31 +81,26 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
 templ TaskRows(tasks []domain.Task) {
   for _, task := range tasks {
     <div>
-      <div hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">
-        <h4>{ task.Title }</h4>
-        if task.CompletedAt != nil {
-          <p>Completed: { pkg.DateStr(task.CompletedAt) }</p>
-        } else if task.DueDate != nil {
-          <p class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>Due: { pkg.DateStr(task.DueDate) }</p>
+      <div class="task-row">
+        if !task.Done() {
+          <button
+            class="check-button"
+            hx-post={ fmt.Sprintf("/tasks/%d/complete", task.Id) }
+            hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
+          ></button>
+        } else {
+          <button
+            hx-post={ fmt.Sprintf("/tasks/%d/incomplete", task.Id) }
+            hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
+          >☑️</button>
         }
-      </div>
-      if !task.Done() {
-        <button
-          hx-post={ fmt.Sprintf("/tasks/%d/complete", task.Id) }
-          hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-        >✅</button>
-      } else {
-        <button
-          hx-post={ fmt.Sprintf("/tasks/%d/incomplete", task.Id) }
-          hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-        >☑️</button>
+        <h5 hx-get={ fmt.Sprintf("/tasks/%d", task.Id) }  hx-target="#taskForm">{ task.Title }</h5>
+      if task.CompletedAt != nil {
+        <p style="margin-left: auto;">Completed: { pkg.DateStrShort(task.CompletedAt) }</p>
+      } else if task.DueDate != nil {
+        <p style="margin-left: auto;" class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>{ pkg.DateStrShort(task.DueDate) }</p>
       }
-      <button
-        hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
-        hx-confirm="Are you sure you want to delete this task?"
-        hx-on::after-request="if (event.detail.successful) { this.parentElement.remove(); }"
-      >❌</button>
-      <hr />
+      </div>
     </div>
   }
 }
@@ -127,6 +120,11 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
         @TaskFields(task, task.GetRecurPolicy(), projects, users)
         <br />
         <button type="submit" disabled?={ task.Done() }>Save</button>
+        <button
+          hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
+          hx-confirm="Are you sure you want to delete this task?"
+          hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
+        >Delete</button>
         <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
       </form>
     </div>

@@ -120,12 +120,14 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
         @TaskFields(task, task.GetRecurPolicy(), projects, users)
         <br />
         <button type="submit" disabled?={ task.Done() }>Save</button>
+        <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
         <button
           hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
           hx-confirm="Are you sure you want to delete this task?"
           hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
+          class="red-text"
+          style="float: right;"
         >Delete</button>
-        <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
       </form>
     </div>
   </div>

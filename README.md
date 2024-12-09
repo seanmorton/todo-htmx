@@ -6,8 +6,6 @@ Built with:
 * SQLite for its standalone simplicity.
 * [Simple.css](https://simplecss.org/) since I'm awful at CSS and would rather avoid it altogether.
 
-### Demo
-
 
 https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
 

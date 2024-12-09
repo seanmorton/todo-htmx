@@ -1,7 +1,14 @@
 # todo-htmx
-Yet another personal todo app written with go templ+htmx. I used to use Asana for personal stuff, but it's UI has gotten too cluttered and I wanted to learn more htmx.
+A dead-simple TODO app designed for personal use. I used to use Asana but it got too cluttered for me.
 
-## TODO
+Built with:
+* Go+HTMX to make it nice and snappy.
+* SQLite for its standalone simplicity.
+* [Simple.css](https://simplecss.org/) since I'm awful at CSS and would rather avoid it altogether.
+
+### Demo
+
+### TODO
 * Tasks
     * Search
 * Users/Assignees

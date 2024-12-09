@@ -9,10 +9,7 @@ Yet another personal todo app written with go templ+htmx. I used to use Asana fo
     * profile pictures for assignee bubbles on tasks
     * login?
     * default new task assignee to current user
-* Projects
-    * CRUD
-* Improve layout/styling
-    * Themes (add https://botoxparty.github.io/XP.css/)
+    * private projects
 * "Pinned" tasks
     * stays at top, no due date
 * Design

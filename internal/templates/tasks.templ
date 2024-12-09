@@ -135,7 +135,7 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
 
 templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []domain.Project, users []domain.User) {
     <label>Title</label>
-    <input type="text" name="title" value={ task.Title } required/>
+    <input type="text" name="title" value={ task.Title } autofocus required/>
 
     <label>Assignee</label>
     <select name="assigneeId">
@@ -157,11 +157,11 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
     </select>
 
     <label>Description</label>
-    if task.Description != nil {
-      <textarea rows="4" name="description">{ *task.Description }</textarea>
-    } else {
-      <textarea rows="4" name="description"></textarea>
-    }
+    <textarea rows="4" name="description">
+      if task.Description != nil {
+        { *task.Description }
+      }
+    </textarea>
 
     <label>DueDate</label>
     <input type="date" name="dueDate"

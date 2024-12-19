@@ -2,11 +2,14 @@
 A dead-simple TODO app designed for personal use. I used to use Asana but it got too cluttered for me.
 
 Built with:
-* Go+HTMX to make it nice and snappy.
+* Go templ + HTMX to make it nice and snappy.
 * SQLite for its standalone simplicity.
 * [Simple.css](https://simplecss.org/) since I'm awful at CSS and would rather avoid it altogether.
 
-### Demo
+
+https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
+
+
 
 ### TODO
 * Tasks

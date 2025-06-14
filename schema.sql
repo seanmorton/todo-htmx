@@ -1,16 +1,16 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id            INTEGER     PRIMARY KEY,
   name          TEXT        NOT NULL UNIQUE,
   created_at    TIMESTAMP   DEFAULT current_timestamp
 );
 
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
   id            INTEGER     PRIMARY KEY,
   name          TEXT        NOT NULL UNIQUE,
   created_at    TIMESTAMP   DEFAULT current_timestamp
 );
 
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
   id            INTEGER     PRIMARY KEY,
   project_id    INTEGER     REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   assignee_id   INTEGER     REFERENCES users(id) ON DELETE SET NULL,

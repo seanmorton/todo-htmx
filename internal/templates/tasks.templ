@@ -76,6 +76,13 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       form.dispatchEvent(new Event("taskParamChange"));
     }
   </script>
+
+  <script>
+    document.addEventListener("htmx:configRequest", function (evt) {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      evt.detail.headers['X-Timezone'] = tz;
+    });
+  </script>
 }
 
 templ TaskRows(tasks []domain.Task) {

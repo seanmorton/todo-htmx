@@ -26,4 +26,4 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
     * support more hx-push-url for consistent reload experience
     * switch to https://gitlab.com/cznic/sqlite to avoid cgo
 * Config
-    * user timezone for capturing due date
+    * User timezone for capturing due date. Currently defaults to browser-detected timezone.

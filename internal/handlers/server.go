@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/seanmorton/todo-htmx/internal/data"
@@ -14,7 +13,6 @@ import (
 
 type Server struct {
 	db data.DB
-	tz *time.Location
 }
 
 type httpErr struct {
@@ -33,8 +31,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewServer(db data.DB, tz *time.Location) Server {
-	return Server{db: db, tz: tz}
+func NewServer(db data.DB) Server {
+	return Server{db: db}
 }
 
 func (s *Server) Start(port string, publicDir embed.FS) error {
@@ -52,9 +50,11 @@ func (s *Server) Start(port string, publicDir embed.FS) error {
 	mux.Handle("GET /tasks/rows", handler(s.taskRows))
 	mux.Handle("GET /tasks/new", handler(s.newTask))
 	mux.Handle("GET /tasks/{id}", handler(s.getTask))
+
 	mux.Handle("POST /tasks", handler(s.createTask))
 	mux.Handle("POST /tasks/{id}/complete", handler(s.completeTask))
 	mux.Handle("POST /tasks/{id}/incomplete", handler(s.incompleteTask))
+
 	mux.Handle("PUT /tasks/{id}", handler(s.updateTask))
 	mux.Handle("DELETE /tasks/{id}", handler(s.deleteTask))
 
@@ -70,15 +70,6 @@ func (s *Server) hxRender(w http.ResponseWriter, r *http.Request, content templ.
 		content.Render(r.Context(), w)
 	} else {
 		templates.Index(content).Render(r.Context(), w)
-	}
-}
-
-func (s *Server) hxRedirect(w http.ResponseWriter, r *http.Request, location string) {
-	if r.Header.Get("Hx-Request") == "true" {
-		w.Header().Add("HX-Location", fmt.Sprintf(`{"path":"%s", "target":"main"}`, location))
-		w.WriteHeader(http.StatusOK)
-	} else {
-		http.Redirect(w, r, location, http.StatusSeeOther)
 	}
 }
 

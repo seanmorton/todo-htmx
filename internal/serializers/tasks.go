@@ -11,7 +11,7 @@ import (
 	"github.com/seanmorton/todo-htmx/internal/domain"
 )
 
-func ParseTaskForm(task *domain.Task, r *http.Request, defaultTz *time.Location) error {
+func ParseTaskForm(task *domain.Task, r *http.Request) error {
 	var errMessages []string
 	title := r.FormValue("title")
 	if title == "" {
@@ -43,15 +43,9 @@ func ParseTaskForm(task *domain.Task, r *http.Request, defaultTz *time.Location)
 		task.Description = nil
 	}
 
-	if headerTzName := r.Header.Get("X-Timezone"); headerTzName != "" {
-		if headerTz, err := time.LoadLocation(headerTzName); err == nil {
-			defaultTz = headerTz
-		}
-	}
-
 	dueDate := r.FormValue("dueDate")
 	if dueDate != "" {
-		parsed, _ := time.ParseInLocation(time.DateOnly, dueDate, defaultTz)
+		parsed, _ := time.Parse(time.DateOnly, dueDate)
 		task.DueDate = &parsed
 	} else {
 		task.DueDate = nil

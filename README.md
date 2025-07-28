@@ -6,10 +6,7 @@ Built with:
 * SQLite for its standalone simplicity.
 * [Simple.css](https://simplecss.org/) since I'm awful at CSS and would rather avoid it altogether.
 
-
 https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
-
-
 
 ### TODO
 * Tasks
@@ -25,5 +22,3 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
 * Design
     * support more hx-push-url for consistent reload experience
     * switch to https://gitlab.com/cznic/sqlite to avoid cgo
-* Config
-    * User timezone for capturing due date. Currently defaults to browser-detected timezone.

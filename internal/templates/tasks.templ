@@ -8,6 +8,13 @@ import (
   "github.com/seanmorton/todo-htmx/pkg"
 )
 
+
+func isPastDue(dueDate time.Time) bool {
+  now := time.Now()
+  nowDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+  return dueDate.Before(nowDate)
+}
+
 templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, params map[string]any) {
   <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
   +
@@ -76,13 +83,6 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       form.dispatchEvent(new Event("taskParamChange"));
     }
   </script>
-
-  <script>
-    document.addEventListener("htmx:configRequest", function (evt) {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      evt.detail.headers['X-Timezone'] = tz;
-    });
-  </script>
 }
 
 templ TaskRows(tasks []domain.Task) {
@@ -105,7 +105,7 @@ templ TaskRows(tasks []domain.Task) {
       if task.CompletedAt != nil {
         <p style="margin-left: auto;">Completed: { pkg.DateStrShort(task.CompletedAt) }</p>
       } else if task.DueDate != nil {
-        <p style="margin-left: auto;" class={ templ.KV("red-text", (*task.DueDate).Before(time.Now())) }>{ pkg.DateStrShort(task.DueDate) }</p>
+        <p style="margin-left: auto;" class={ templ.KV("red-text", isPastDue(*task.DueDate)) }>{ pkg.DateStrShort(task.DueDate) }</p>
       }
       </div>
     </div>

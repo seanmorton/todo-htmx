@@ -40,7 +40,7 @@ func (s *Server) taskRows(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	serializers.ParseTaskForm(&task, r, s.tz)
+	serializers.ParseTaskForm(&task, r)
 
 	users, err := s.db.ListUsers()
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	validationErr := serializers.ParseTaskForm(&task, r, s.tz)
+	validationErr := serializers.ParseTaskForm(&task, r)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}
@@ -98,7 +98,7 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	if retrieveErr != nil {
 		return retrieveErr
 	}
-	validationErr := serializers.ParseTaskForm(&task, r, s.tz)
+	validationErr := serializers.ParseTaskForm(&task, r)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}

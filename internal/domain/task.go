@@ -32,7 +32,7 @@ func (t *Task) Done() bool {
 }
 
 func (t *Task) GetRecurPolicy() *RecurPolicy {
-	if t.RecurPolicy == nil || len(t.RecurPolicy) == 0 {
+	if len(t.RecurPolicy) == 0 {
 		return nil
 	}
 	rp := RecurPolicy{}

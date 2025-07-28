@@ -85,14 +85,17 @@ func (d *DB) QueryTasks(params map[string]any, nextMonthOnly bool) ([]domain.Tas
 	if len(params) > 0 {
 		query += " WHERE"
 		count := 0
+
 		for col, val := range params {
 			col := pkg.CamelToSnake(col)
 			var clause string
-			if val == nil {
+
+			switch val {
+			case nil:
 				clause = fmt.Sprintf("%s IS NULL", col)
-			} else if val == "NOT NULL" {
+			case "NOT NULL":
 				clause = fmt.Sprintf("%s IS NOT NULL", col)
-			} else {
+			default:
 				clause = fmt.Sprintf("%s = ?", col)
 				args = append(args, val)
 			}
@@ -104,6 +107,7 @@ func (d *DB) QueryTasks(params map[string]any, nextMonthOnly bool) ([]domain.Tas
 			count++
 		}
 	}
+
 	if nextMonthOnly {
 		nextMonth := time.Now().AddDate(0, 1, 0)
 		query += fmt.Sprintf(" AND (due_date < '%s' OR due_date IS NULL)", pkg.DateStr(&nextMonth))

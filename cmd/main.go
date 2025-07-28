@@ -5,7 +5,6 @@ import (
 	"embed"
 	"log/slog"
 	"os"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -17,12 +16,6 @@ import (
 var publicDir embed.FS
 
 func main() {
-	tz, err := time.LoadLocation("America/Chicago")
-	if err != nil {
-		slog.Error("failed loading timezone location", "err", err)
-		os.Exit(1)
-	}
-
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {
 		slog.Error("DB_FILE env not set")
@@ -42,7 +35,7 @@ func main() {
 	dbConn.Exec("PRAGMA foreign_keys = ON;")
 
 	db := data.NewDB(dbConn)
-	server := handlers.NewServer(db, tz)
+	server := handlers.NewServer(db)
 
 	slog.Info("starting server...")
 	err = server.Start(port, publicDir)

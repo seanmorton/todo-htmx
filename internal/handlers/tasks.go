@@ -201,6 +201,9 @@ func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilters,
 		id, _ := strconv.ParseInt(assigneeId, 10, 64)
 		filter.AssigneeID = &id
 	}
+	if search := r.FormValue("q"); search != "" {
+		filter.Search = &search
+	}
 	tasks, err := s.db.QueryTasks(filter)
 	return tasks, filter, err
 }

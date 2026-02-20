@@ -25,6 +25,7 @@ const (
 type TaskFilters struct {
 	ProjectID     *int64
 	AssigneeID    *int64
+	Search        *string
 	Completed     bool
 	NextMonthOnly bool
 }

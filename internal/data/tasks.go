@@ -95,6 +95,11 @@ func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
 	} else {
 		query += " AND completed_at IS NULL"
 	}
+	if filter.Search != nil {
+		query += " AND (title LIKE ? OR description LIKE ?)"
+		wildcard := "%" + *filter.Search + "%"
+		args = append(args, wildcard, wildcard)
+	}
 	if filter.NextMonthOnly {
 		nextMonth := time.Now().AddDate(0, 1, 0)
 		query += " AND (due_date < ? OR due_date IS NULL)"

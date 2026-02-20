@@ -46,10 +46,12 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ user.Name }</option>
       }
     </select>
-    <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
-    <label for="nextMonthOnly">Due next month</label>
-    <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
-    <label for="completed">Completed</label>
+    <div>
+      <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
+      <label for="nextMonthOnly">Due next month</label>
+      <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
+      <label for="completed">Completed</label>
+    </div>
   </form>
 
   <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body, taskParamChange from:#taskParams">

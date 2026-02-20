@@ -77,6 +77,13 @@ button:enabled:hover, .button:not([aria-disabled="true"]):hover, input[type="sub
   background-color: inherit;
 }
 
+#taskParams {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 #taskNew {
   position: fixed;
   bottom: 1rem;

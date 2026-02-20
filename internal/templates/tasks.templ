@@ -15,15 +15,15 @@ func isPastDue(dueDate time.Time) bool {
   return dueDate.Before(nowDate)
 }
 
-func newTaskURL(filter domain.TaskFilter) string {
-  if filter.ProjectID != nil {
-    return fmt.Sprintf("/tasks/new?projectId=%d", *filter.ProjectID)
+func newTaskURL(filters domain.TaskFilters) string {
+  if filters.ProjectID != nil {
+    return fmt.Sprintf("/tasks/new?projectId=%d", *filters.ProjectID)
   }
   return "/tasks/new"
 }
 
-templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filter domain.TaskFilter) {
-  <button id="taskNew" hx-get={ newTaskURL(filter) } hx-target="#taskForm">
+templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filters domain.TaskFilters) {
+  <button id="taskNew" hx-get={ newTaskURL(filters) } hx-target="#taskForm">
   +
   </button>
   <form id="taskParams">
@@ -31,7 +31,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       <option value="">All Projects</option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ filter.ProjectID != nil && *filter.ProjectID == project.Id }
+          selected?={ filters.ProjectID != nil && *filters.ProjectID == project.Id }
         >{ project.Name }</option>
       }
     </select>
@@ -39,7 +39,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       <option value="">All Assignees</option>
       for _, user := range users {
         <option value={ fmt.Sprintf("%d", user.Id) }
-          selected?={ filter.AssigneeID != nil && *filter.AssigneeID == user.Id }
+          selected?={ filters.AssigneeID != nil && *filters.AssigneeID == user.Id }
         >{ user.Name }</option>
       }
     </select>
@@ -170,19 +170,19 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
       }
     </select>
 
-    <label>Description</label>
-    <textarea rows="4" name="description">
-      if task.Description != nil {
-        { *task.Description }
-      }
-    </textarea>
-
     <label>DueDate</label>
     <input type="date" name="dueDate"
       if task.DueDate != nil {
         value={ pkg.DateStr(task.DueDate) }
       }
     />
+
+    <label>Description</label>
+    <textarea rows="4" name="description">
+      if task.Description != nil {
+        { *task.Description }
+      }
+    </textarea>
 
     <label>Repeat?</label>
     <select name="recurPolicyType">

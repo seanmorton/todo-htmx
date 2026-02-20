@@ -22,7 +22,7 @@ const (
 	RPDaysAfterComplete = "DaC"
 )
 
-type TaskFilter struct {
+type TaskFilters struct {
 	ProjectID     *int64
 	AssigneeID    *int64
 	Completed     bool

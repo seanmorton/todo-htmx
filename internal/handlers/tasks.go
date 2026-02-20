@@ -40,7 +40,10 @@ func (s *Server) taskRows(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	serializers.ParseTaskForm(&task, r)
+
+	// Preset fields from params, but ignore validation errors since
+	// we're just setting up the form here
+	serializers.ParseTask(&task, r)
 
 	users, err := s.db.ListUsers()
 	if err != nil {
@@ -78,7 +81,7 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) createTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	task := domain.Task{}
-	validationErr := serializers.ParseTaskForm(&task, r)
+	validationErr := serializers.ParseTask(&task, r)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}
@@ -98,7 +101,7 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	if retrieveErr != nil {
 		return retrieveErr
 	}
-	validationErr := serializers.ParseTaskForm(&task, r)
+	validationErr := serializers.ParseTask(&task, r)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}
@@ -185,8 +188,8 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
-func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilter, error) {
-	filter := domain.TaskFilter{
+func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilters, error) {
+	filter := domain.TaskFilters{
 		Completed:     r.FormValue("completed") == "true",
 		NextMonthOnly: r.FormValue("nextMonthOnly") != "false",
 	}

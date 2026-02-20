@@ -78,7 +78,7 @@ func (d *DB) DeleteTask(id int64) (bool, error) {
 	return true, nil
 }
 
-func (d *DB) QueryTasks(filter domain.TaskFilter) ([]domain.Task, error) {
+func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
 	query := "SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at FROM tasks WHERE 1=1"
 	var args []any
 

@@ -12,7 +12,7 @@ import (
 
 func (s *Server) createProject(w http.ResponseWriter, r *http.Request) *httpErr {
 	project := domain.Project{}
-	validationErr := serializers.ParseProjectForm(&project, r)
+	validationErr := serializers.ParseProject(&project, r)
 	if validationErr != nil {
 		return &httpErr{validationErr.Error(), 400, validationErr}
 	}

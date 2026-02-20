@@ -15,8 +15,15 @@ func isPastDue(dueDate time.Time) bool {
   return dueDate.Before(nowDate)
 }
 
-templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, params map[string]any) {
-  <button id="taskNew" hx-get={ fmt.Sprintf("/tasks/new?projectId=%d", params["projectId"]) } hx-target="#taskForm">
+func newTaskURL(filter domain.TaskFilter) string {
+  if filter.ProjectID != nil {
+    return fmt.Sprintf("/tasks/new?projectId=%d", *filter.ProjectID)
+  }
+  return "/tasks/new"
+}
+
+templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filter domain.TaskFilter) {
+  <button id="taskNew" hx-get={ newTaskURL(filter) } hx-target="#taskForm">
   +
   </button>
   <form id="taskParams">
@@ -24,7 +31,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       <option value="">All Projects</option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
-          selected?={ params["projectId"] != nil && params["projectId"] == project.Id }
+          selected?={ filter.ProjectID != nil && *filter.ProjectID == project.Id }
         >{ project.Name }</option>
       }
     </select>
@@ -32,7 +39,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       <option value="">All Assignees</option>
       for _, user := range users {
         <option value={ fmt.Sprintf("%d", user.Id) }
-          selected?={ params["assigneeId"] != nil && params["assigneeId"] == user.Id }
+          selected?={ filter.AssigneeID != nil && *filter.AssigneeID == user.Id }
         >{ user.Name }</option>
       }
     </select>

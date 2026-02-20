@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/seanmorton/todo-htmx/internal/domain"
@@ -27,7 +26,7 @@ func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
 
 func (d *DB) GetTask(id int64) (*domain.Task, error) {
 	var task domain.Task
-	row := d.dbConn.QueryRow("SELECT * FROM tasks WHERE id = ?", id)
+	row := d.dbConn.QueryRow("SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at FROM tasks WHERE id = ?", id)
 	err := row.Scan(
 		&task.Id, &task.ProjectId, &task.AssigneeId,
 		&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
@@ -79,41 +78,30 @@ func (d *DB) DeleteTask(id int64) (bool, error) {
 	return true, nil
 }
 
-func (d *DB) QueryTasks(params map[string]any, nextMonthOnly bool) ([]domain.Task, error) {
-	query := "SELECT * FROM tasks"
-	args := make([]any, 0, len(params))
-	if len(params) > 0 {
-		query += " WHERE"
-		count := 0
+func (d *DB) QueryTasks(filter domain.TaskFilter) ([]domain.Task, error) {
+	query := "SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at FROM tasks WHERE 1=1"
+	var args []any
 
-		for col, val := range params {
-			col := pkg.CamelToSnake(col)
-			var clause string
-
-			switch val {
-			case nil:
-				clause = fmt.Sprintf("%s IS NULL", col)
-			case "NOT NULL":
-				clause = fmt.Sprintf("%s IS NOT NULL", col)
-			default:
-				clause = fmt.Sprintf("%s = ?", col)
-				args = append(args, val)
-			}
-			if count < 1 {
-				query += fmt.Sprintf(" %s", clause)
-			} else {
-				query += fmt.Sprintf(" AND %s", clause)
-			}
-			count++
-		}
+	if filter.ProjectID != nil {
+		query += " AND project_id = ?"
+		args = append(args, *filter.ProjectID)
 	}
-
-	if nextMonthOnly {
+	if filter.AssigneeID != nil {
+		query += " AND assignee_id = ?"
+		args = append(args, *filter.AssigneeID)
+	}
+	if filter.Completed {
+		query += " AND completed_at IS NOT NULL"
+	} else {
+		query += " AND completed_at IS NULL"
+	}
+	if filter.NextMonthOnly {
 		nextMonth := time.Now().AddDate(0, 1, 0)
-		query += fmt.Sprintf(" AND (due_date < '%s' OR due_date IS NULL)", pkg.DateStr(&nextMonth))
+		query += " AND (due_date < ? OR due_date IS NULL)"
+		args = append(args, pkg.DateStr(&nextMonth))
 	}
 
-	if params["completed_at"] == "NOT NULL" {
+	if filter.Completed {
 		query += " ORDER BY completed_at DESC"
 	} else {
 		query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"

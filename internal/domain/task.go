@@ -22,6 +22,13 @@ const (
 	RPDaysAfterComplete = "DaC"
 )
 
+type TaskFilter struct {
+	ProjectID     *int64
+	AssigneeID    *int64
+	Completed     bool
+	NextMonthOnly bool
+}
+
 type RecurPolicy struct {
 	Type string `json:"type"`
 	N    int64  `json:"n"`

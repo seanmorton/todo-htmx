@@ -36,7 +36,7 @@ func (d *DB) DeleteProject(id int64) (bool, error) {
 
 func (d *DB) ListProjects() ([]domain.Project, error) {
 	var projects []domain.Project
-	rows, err := d.dbConn.Query("SELECT * FROM projects")
+	rows, err := d.dbConn.Query("SELECT id, name, created_at FROM projects")
 	if err != nil {
 		return nil, err
 	}

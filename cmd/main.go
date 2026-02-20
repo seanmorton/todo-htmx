@@ -27,11 +27,12 @@ func main() {
 	}
 
 	dbConn, err := sql.Open("sqlite3", dbFile)
-	defer dbConn.Close()
 	if err != nil {
 		slog.Error("failed opening db", "err", err)
 		os.Exit(1)
 	}
+	defer dbConn.Close()
+
 	dbConn.Exec("PRAGMA foreign_keys = ON;")
 
 	db := data.NewDB(dbConn)

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
-	tasks, params, err := s.fetchTasks(r)
+	tasks, filter, err := s.fetchTasks(r)
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
@@ -24,7 +24,7 @@ func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed getting users", 500, err}
 	}
 
-	s.hxRender(w, r, templates.Tasks(tasks, projects, users, params))
+	s.hxRender(w, r, templates.Tasks(tasks, projects, users, filter))
 	return nil
 }
 
@@ -185,26 +185,21 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
-func (s *Server) fetchTasks(r *http.Request) (tasks []domain.Task, params map[string]any, err error) {
-	params = map[string]any{}
-	projectId := r.FormValue("projectId")
-	if projectId != "" {
-		params["projectId"], _ = strconv.ParseInt(projectId, 10, 64)
+func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilter, error) {
+	filter := domain.TaskFilter{
+		Completed:     r.FormValue("completed") == "true",
+		NextMonthOnly: r.FormValue("nextMonthOnly") != "false",
 	}
-	assigneeId := r.FormValue("assigneeId")
-	if assigneeId != "" {
-		params["assigneeId"], _ = strconv.ParseInt(assigneeId, 10, 64)
+	if projectId := r.FormValue("projectId"); projectId != "" {
+		id, _ := strconv.ParseInt(projectId, 10, 64)
+		filter.ProjectID = &id
 	}
-	completed := r.FormValue("completed")
-	if completed == "true" {
-		params["completed_at"] = "NOT NULL"
-	} else {
-		params["completed_at"] = nil
+	if assigneeId := r.FormValue("assigneeId"); assigneeId != "" {
+		id, _ := strconv.ParseInt(assigneeId, 10, 64)
+		filter.AssigneeID = &id
 	}
-	nextMonthOnly := r.FormValue("nextMonthOnly")
-	tasks, err = s.db.QueryTasks(params, nextMonthOnly != "false")
-
-	return
+	tasks, err := s.db.QueryTasks(filter)
+	return tasks, filter, err
 }
 
 func (s *Server) fetchTask(r *http.Request) (domain.Task, *httpErr) {

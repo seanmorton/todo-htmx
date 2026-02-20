@@ -6,7 +6,7 @@ import (
 
 func (d *DB) ListUsers() ([]domain.User, error) {
 	var users []domain.User
-	rows, err := d.dbConn.Query("SELECT * FROM users")
+	rows, err := d.dbConn.Query("SELECT id, name, created_at FROM users")
 	if err != nil {
 		return nil, err
 	}

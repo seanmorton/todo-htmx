@@ -24,14 +24,22 @@ func ParseTaskForm(task *domain.Task, r *http.Request) error {
 	if projectIdStr == "" {
 		errMessages = append(errMessages, "project is required")
 	} else {
-		projectId, _ := strconv.ParseInt(projectIdStr, 10, 64)
-		task.ProjectId = projectId
+		projectId, err := strconv.ParseInt(projectIdStr, 10, 64)
+		if err != nil {
+			errMessages = append(errMessages, "invalid project id")
+		} else {
+			task.ProjectId = projectId
+		}
 	}
 
 	assigneeIdStr := r.FormValue("assigneeId")
 	if assigneeIdStr != "" {
-		assigneeId, _ := strconv.ParseInt(assigneeIdStr, 10, 64)
-		task.AssigneeId = &assigneeId
+		assigneeId, err := strconv.ParseInt(assigneeIdStr, 10, 64)
+		if err != nil {
+			errMessages = append(errMessages, "invalid assignee id")
+		} else {
+			task.AssigneeId = &assigneeId
+		}
 	} else {
 		task.AssigneeId = nil
 	}
@@ -45,8 +53,12 @@ func ParseTaskForm(task *domain.Task, r *http.Request) error {
 
 	dueDate := r.FormValue("dueDate")
 	if dueDate != "" {
-		parsed, _ := time.Parse(time.DateOnly, dueDate)
-		task.DueDate = &parsed
+		parsed, err := time.Parse(time.DateOnly, dueDate)
+		if err != nil {
+			errMessages = append(errMessages, "invalid due date")
+		} else {
+			task.DueDate = &parsed
+		}
 	} else {
 		task.DueDate = nil
 	}
@@ -54,18 +66,20 @@ func ParseTaskForm(task *domain.Task, r *http.Request) error {
 	recurPolicyType := r.FormValue("recurPolicyType")
 	recurPolicyNStr := r.FormValue("recurPolicyN")
 	if recurPolicyType != "" && recurPolicyNStr != "" {
-		recurPolicyN, _ := strconv.ParseInt(recurPolicyNStr, 10, 64)
-		if recurPolicyN < 1 {
+		recurPolicyN, err := strconv.ParseInt(recurPolicyNStr, 10, 64)
+		if err != nil {
+			errMessages = append(errMessages, "invalid recurrence value")
+		} else if recurPolicyN < 1 {
 			errMessages = append(errMessages, "days must be greater than 0")
 		} else if recurPolicyType == domain.RPDayOfMonth && recurPolicyN > 28 {
 			errMessages = append(errMessages, "day of month cannot be greater than 28")
+		} else {
+			recurPolicy := domain.RecurPolicy{
+				Type: recurPolicyType,
+				N:    recurPolicyN,
+			}
+			task.RecurPolicy, _ = json.Marshal(recurPolicy)
 		}
-
-		recurPolicy := domain.RecurPolicy{
-			Type: recurPolicyType,
-			N:    recurPolicyN,
-		}
-		task.RecurPolicy, _ = json.Marshal(recurPolicy)
 	} else {
 		task.RecurPolicy = nil
 	}

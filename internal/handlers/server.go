@@ -12,13 +12,20 @@ import (
 )
 
 type Server struct {
-	db data.DB
+	db *data.DB
 }
 
 type httpErr struct {
 	Message string
 	Code    int
 	Cause   error
+}
+
+func (e *httpErr) Error() string {
+	if e.Cause != nil {
+		return fmt.Sprintf("%s: %v", e.Message, e.Cause)
+	}
+	return e.Message
 }
 
 type handler func(http.ResponseWriter, *http.Request) *httpErr
@@ -31,7 +38,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewServer(db data.DB) Server {
+func NewServer(db *data.DB) Server {
 	return Server{db: db}
 }
 

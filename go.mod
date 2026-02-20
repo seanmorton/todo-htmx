@@ -3,8 +3,8 @@ module github.com/seanmorton/todo-htmx
 go 1.24.5
 
 require (
-	github.com/a-h/templ v0.3.960
-	github.com/mattn/go-sqlite3 v1.14.23
+	github.com/a-h/templ v0.3.977
+	github.com/mattn/go-sqlite3 v1.14.34
 )
 
 require (

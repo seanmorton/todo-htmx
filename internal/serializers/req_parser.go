@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/seanmorton/todo-htmx/pkg"
 )
 
 func parseString(r *http.Request, field string, errs *[]string) string {
@@ -51,16 +53,12 @@ func parseOptInt64(r *http.Request, field string, errs *[]string) *int64 {
 }
 
 func parseOptDate(r *http.Request, field string, errs *[]string) *time.Time {
-	str := r.FormValue(field)
-	if str == "" {
-		return nil
-	}
-	t, err := time.Parse(time.DateOnly, str)
+	t, err := pkg.ParseOptDateStr(r.FormValue(field))
 	if err != nil {
-		*errs = append(*errs, "invalid " + field)
+		*errs = append(*errs, "invalid "+field)
 		return nil
 	}
-	return &t
+	return t
 }
 
 func validationErr(errs []string) error {

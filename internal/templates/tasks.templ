@@ -124,10 +124,11 @@ templ TaskRows(tasks []domain.Task) {
 }
 
 templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User) {
+  {{ isNew := task.Id == 0 }}
   <div id="taskForm">
     <div class="overlay">
       <form
-        if task.Id == 0 {
+        if isNew {
           hx-post="/tasks"
         } else {
           hx-put={ fmt.Sprintf("/tasks/%d", task.Id) }
@@ -146,6 +147,9 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
           class="red-text"
           style="float: right;"
         >Delete</button>
+        if !isNew {
+          <div style="clear: right;"><small>Created: { pkg.DateStr(&task.CreatedAt) }</small></div>
+        }
       </form>
     </div>
   </div>

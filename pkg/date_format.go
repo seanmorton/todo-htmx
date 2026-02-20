@@ -17,3 +17,16 @@ func DateStrShort(t *time.Time) string {
 	}
 	return t.Format("01/02")
 }
+
+func ParseOptDateStr(s string) (*time.Time, error) {
+	if s == "" {
+		return nil, nil
+	}
+
+	t, err := time.Parse(time.DateOnly, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
+}

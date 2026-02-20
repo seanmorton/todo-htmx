@@ -10,8 +10,6 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
 
 ### TODO
 * Tasks
-    * Search
-    * Display created_at
     * "Today" / "Tomorrow" due date buttons
     * Full screen description viewer/editor on mobile
     * Calendar view

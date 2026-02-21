@@ -63,11 +63,11 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
   <script>
     function onTaskParamChange() {
       const form = htmx.find("#taskParams");
-      const projectId = htmx.find("#taskParams>select[name=projectId]").value;
-      const assigneeId = htmx.find("#taskParams>select[name=assigneeId]").value;
-      const q = htmx.find("#taskParams>input[name=q]").value;
-      const completed = htmx.find("#taskParams>input[name=completed]").checked;
-      const nextMonthOnly = htmx.find("#taskParams>input[name=nextMonthOnly]").checked;
+      const projectId = htmx.find("#taskParams select[name=projectId]").value;
+      const assigneeId = htmx.find("#taskParams select[name=assigneeId]").value;
+      const q = htmx.find("#taskParams input[name=q]").value;
+      const completed = htmx.find("#taskParams input[name=completed]").checked;
+      const nextMonthOnly = htmx.find("#taskParams input[name=nextMonthOnly]").checked;
       const params = { projectId, assigneeId, q, completed, nextMonthOnly };
 
       // Update query parms for list

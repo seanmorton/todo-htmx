@@ -26,11 +26,11 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
   <button id="taskNew" hx-get={ newTaskURL(filters) } hx-target="#taskForm">
   +
   </button>
-  <form id="taskParams">
+  <form id="taskParams" hx-get="/tasks/rows" hx-trigger="change" hx-target="#taskList">
     <input type="search" name="q" placeholder="Search..." autocomplete="off"
-      hx-get="/tasks/rows" hx-trigger="keyup changed delay:300ms" hx-target="#taskList" hx-include="#taskParams"
+      hx-trigger="keyup changed delay:500ms" hx-include="#taskParams"
     />
-    <select name="projectId" autocomplete="off" hx-on:change="onTaskParamChange()">
+    <select name="projectId" autocomplete="off" hx-on:change="updateNewUrlParams()">
       <option value="">All Projects</option>
       for _, project := range projects {
         <option value={ fmt.Sprintf("%d", project.Id) }
@@ -38,7 +38,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ project.Name }</option>
       }
     </select>
-    <select name="assigneeId" autocomplete="off" hx-on:change="onTaskParamChange()">
+    <select name="assigneeId" autocomplete="off" hx-on:change="updateNewUrlParams()">
       <option value="">All Assignees</option>
       for _, user := range users {
         <option value={ fmt.Sprintf("%d", user.Id) }
@@ -47,53 +47,31 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       }
     </select>
     <div>
-      <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" hx-on:change="onTaskParamChange()" checked></input>
+      <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" checked></input>
       <label for="nextMonthOnly">Due next month</label>
-      <input type="checkbox" name="completed" id="completed" autocomplete="off" hx-on:change="onTaskParamChange()"></input>
+      <input type="checkbox" name="completed" id="completed" autocomplete="off"></input>
       <label for="completed">Completed</label>
     </div>
   </form>
 
-  <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body, taskParamChange from:#taskParams">
+  <div id="taskList" hx-get="/tasks/rows" hx-trigger="taskChange from:body" hx-include="#taskParams">
     @TaskRows(tasks)
   </div>
 
   <div id="taskForm"></div>
 
   <script>
-    function onTaskParamChange() {
-      const form = htmx.find("#taskParams");
+    function updateNewUrlParams() {
       const projectId = htmx.find("#taskParams select[name=projectId]").value;
       const assigneeId = htmx.find("#taskParams select[name=assigneeId]").value;
-      const q = htmx.find("#taskParams input[name=q]").value;
-      const completed = htmx.find("#taskParams input[name=completed]").checked;
-      const nextMonthOnly = htmx.find("#taskParams input[name=nextMonthOnly]").checked;
-      const params = { projectId, assigneeId, q, completed, nextMonthOnly };
 
-      // Update query parms for list
-      let queryPath = "/tasks/rows?";
-      for (let [k, v] of Object.entries(params)) {
-        if (v == false || v != "") {
-          queryPath += `${k}=${v}&`
-        }
-      }
-      const taskList = htmx.find("#taskList");
-      taskList.setAttribute("hx-get", queryPath);
-      htmx.process(taskList);
-
-      // Prefill projectId on newTask form
       let newPath = "/tasks/new?";
-      if (projectId != "") {
-        newPath += `projectId=${projectId}&`
-      }
-      if (assigneeId != "") {
-        newPath += `assigneeId=${assigneeId}&`
-      }
+      if (projectId != "") newPath += `projectId=${projectId}&`;
+      if (assigneeId != "") newPath += `assigneeId=${assigneeId}&`;
+
       const taskNew = htmx.find("#taskNew");
       taskNew.setAttribute("hx-get", newPath);
       htmx.process(taskNew);
-
-      form.dispatchEvent(new Event("taskParamChange"));
     }
   </script>
 }

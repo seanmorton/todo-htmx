@@ -26,10 +26,8 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
   <button id="taskNew" hx-get={ newTaskURL(filters) } hx-target="#taskForm">
   +
   </button>
-  <form id="taskParams" hx-get="/tasks/rows" hx-trigger="change" hx-target="#taskList">
-    <input type="search" name="q" placeholder="Search..." autocomplete="off"
-      hx-trigger="keyup changed delay:500ms" hx-include="#taskParams"
-    />
+  <form id="taskParams" hx-get="/tasks/rows" hx-trigger="change, keyup changed delay:500ms from:find input[name='q']" hx-target="#taskList">
+    <input type="search" name="q" placeholder="Search..." autocomplete="off" />
     <select name="projectId" autocomplete="off" hx-on:change="updateNewUrlParams()">
       <option value="">All Projects</option>
       for _, project := range projects {

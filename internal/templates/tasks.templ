@@ -23,7 +23,7 @@ func newTaskURL(filters domain.TaskFilters) string {
 }
 
 templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User, filters domain.TaskFilters) {
-  <button id="taskNew" hx-get={ newTaskURL(filters) } hx-target="#taskForm">
+  <button class="new-btn" hx-get={ newTaskURL(filters) } hx-target="#taskForm">
   +
   </button>
   <form id="taskParams" hx-get="/tasks/rows" hx-trigger="change, keyup changed delay:500ms from:find input[name='q']" hx-target="#taskList">

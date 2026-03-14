@@ -59,6 +59,54 @@ func (s *Server) projects(w http.ResponseWriter, r *http.Request) *httpErr {
 	return nil
 }
 
+func (s *Server) newProject(w http.ResponseWriter, r *http.Request) *httpErr {
+	templates.ProjectForm(domain.Project{}).Render(r.Context(), w)
+	return nil
+}
+
+func (s *Server) getProject(w http.ResponseWriter, r *http.Request) *httpErr {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		return &httpErr{"invalid id", 400, nil}
+	}
+
+	project, err := s.db.GetProject(id)
+	if err != nil {
+		return &httpErr{"project not found", 404, err}
+	}
+
+	templates.ProjectForm(*project).Render(r.Context(), w)
+	return nil
+}
+
+func (s *Server) updateProject(w http.ResponseWriter, r *http.Request) *httpErr {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		return &httpErr{"invalid id", 400, nil}
+	}
+
+	project := domain.Project{}
+	validationErr := serializers.ParseProject(&project, r)
+	if validationErr != nil {
+		return &httpErr{validationErr.Error(), 400, validationErr}
+	}
+
+	updated, err := s.db.UpdateProject(id, project.Name)
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE") {
+			return &httpErr{"project name already exists", 409, err}
+		}
+		return &httpErr{"failed updating project", 500, err}
+	}
+	if !updated {
+		return &httpErr{"project not found", 404, nil}
+	}
+
+	s.hxEvent(w, "projectChange")
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
 func (s *Server) projectRows(w http.ResponseWriter, r *http.Request) *httpErr {
 	projects, err := s.db.ListProjects()
 	if err != nil {

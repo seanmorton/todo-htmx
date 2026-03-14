@@ -84,7 +84,7 @@ button:enabled:hover, .button:not([aria-disabled="true"]):hover, input[type="sub
   gap: 0.5rem;
 }
 
-#taskNew {
+.new-btn {
   position: fixed;
   bottom: 1rem;
   right: 1rem;

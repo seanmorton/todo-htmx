@@ -50,18 +50,19 @@ func (s *Server) Start(port string, publicDir embed.FS) error {
 
 	mux.Handle("GET /projects", handler(s.projects))
 	mux.Handle("GET /projects/rows", handler(s.projectRows))
+	mux.Handle("GET /projects/new", handler(s.newProject))
+	mux.Handle("GET /projects/{id}", handler(s.getProject))
 	mux.Handle("POST /projects", handler(s.createProject))
+	mux.Handle("PUT /projects/{id}", handler(s.updateProject))
 	mux.Handle("DELETE /projects/{id}", handler(s.deleteProject))
 
 	mux.Handle("GET /tasks", handler(s.tasks))
 	mux.Handle("GET /tasks/rows", handler(s.taskRows))
 	mux.Handle("GET /tasks/new", handler(s.newTask))
 	mux.Handle("GET /tasks/{id}", handler(s.getTask))
-
 	mux.Handle("POST /tasks", handler(s.createTask))
 	mux.Handle("POST /tasks/{id}/complete", handler(s.completeTask))
 	mux.Handle("POST /tasks/{id}/incomplete", handler(s.incompleteTask))
-
 	mux.Handle("PUT /tasks/{id}", handler(s.updateTask))
 	mux.Handle("DELETE /tasks/{id}", handler(s.deleteTask))
 

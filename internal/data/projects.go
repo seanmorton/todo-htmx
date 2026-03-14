@@ -34,9 +34,36 @@ func (d *DB) DeleteProject(id int64) (bool, error) {
 	return true, nil
 }
 
+func (d *DB) GetProject(id int64) (*domain.Project, error) {
+	var project domain.Project
+	err := d.dbConn.QueryRow("SELECT id, name, created_at FROM projects WHERE id = ?", id).Scan(
+		&project.Id, &project.Name, &project.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &project, nil
+}
+
+func (d *DB) UpdateProject(id int64, name string) (bool, error) {
+	result, err := d.dbConn.Exec("UPDATE projects SET name = ? WHERE id = ?", name, id)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rowsAffected == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (d *DB) ListProjects() ([]domain.Project, error) {
 	var projects []domain.Project
-	rows, err := d.dbConn.Query("SELECT id, name, created_at FROM projects")
+	rows, err := d.dbConn.Query("SELECT id, name, created_at FROM projects ORDER BY name")
 	if err != nil {
 		return nil, err
 	}

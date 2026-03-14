@@ -15,7 +15,7 @@ func (s *Server) tasks(w http.ResponseWriter, r *http.Request) *httpErr {
 	if err != nil {
 		return &httpErr{"failed getting tasks", 500, err}
 	}
-	projects, err := s.db.ListProjects()
+	projects, err := s.db.ListProjects(domain.ProjectFilters{})
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
@@ -50,7 +50,7 @@ func (s *Server) newTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed getting users", 500, err}
 	}
 
-	projects, err := s.db.ListProjects()
+	projects, err := s.db.ListProjects(domain.ProjectFilters{})
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}
@@ -70,7 +70,7 @@ func (s *Server) getTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return &httpErr{"failed getting users", 500, err}
 	}
 
-	projects, err := s.db.ListProjects()
+	projects, err := s.db.ListProjects(domain.ProjectFilters{})
 	if err != nil {
 		return &httpErr{"failed getting projects", 500, err}
 	}

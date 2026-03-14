@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS projects (
   id            INTEGER     PRIMARY KEY,
   name          TEXT        NOT NULL UNIQUE,
-  created_at    TIMESTAMP   DEFAULT current_timestamp
+  created_at    TIMESTAMP   DEFAULT current_timestamp,
+  deleted_at    TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS tasks (

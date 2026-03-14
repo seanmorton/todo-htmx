@@ -10,7 +10,8 @@ import (
 
 func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
 	result, err := d.dbConn.Exec(
-		"INSERT INTO tasks(title, project_id, assignee_id, description, due_date, completed_at, recur_policy) VALUES(?, ?, ?, ?, ?, ?, ?)",
+		`INSERT INTO tasks(title, project_id, assignee_id, description, due_date, completed_at, recur_policy)
+		VALUES(?, ?, ?, ?, ?, ?, ?)`,
 		task.Title, task.ProjectId, task.AssigneeId, task.Description, task.DueDate, task.CompletedAt, task.RecurPolicy,
 	)
 	if err != nil {
@@ -26,7 +27,12 @@ func (d *DB) CreateTask(task domain.Task) (domain.Task, error) {
 
 func (d *DB) GetTask(id int64) (*domain.Task, error) {
 	var task domain.Task
-	row := d.dbConn.QueryRow("SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at FROM tasks WHERE id = ?", id)
+	row := d.dbConn.QueryRow(
+		`SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at
+		FROM tasks
+		WHERE id = ?`,
+		id,
+	)
 	err := row.Scan(
 		&task.Id, &task.ProjectId, &task.AssigneeId,
 		&task.Title, &task.Description, &task.DueDate, &task.CompletedAt,
@@ -57,7 +63,6 @@ func (d *DB) UpdateTask(task domain.Task) (*domain.Task, error) {
 	if rowsAffected == 0 {
 		return nil, nil
 	}
-
 	return &task, err
 }
 
@@ -79,37 +84,41 @@ func (d *DB) DeleteTask(id int64) (bool, error) {
 }
 
 func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
-	query := "SELECT id, project_id, assignee_id, title, description, due_date, completed_at, recur_policy, created_at FROM tasks WHERE 1=1"
+	query := `SELECT tasks.id, tasks.project_id, tasks.assignee_id, tasks.title, tasks.description,
+		tasks.due_date, tasks.completed_at, tasks.recur_policy, tasks.created_at
+		FROM tasks
+		JOIN projects ON tasks.project_id = projects.id
+		WHERE projects.deleted_at IS NULL`
 	var args []any
 
 	if filter.ProjectID != nil {
-		query += " AND project_id = ?"
+		query += " AND tasks.project_id = ?"
 		args = append(args, *filter.ProjectID)
 	}
 	if filter.AssigneeID != nil {
-		query += " AND assignee_id = ?"
+		query += " AND tasks.assignee_id = ?"
 		args = append(args, *filter.AssigneeID)
 	}
 	if filter.Completed {
-		query += " AND completed_at IS NOT NULL"
+		query += " AND tasks.completed_at IS NOT NULL"
 	} else {
-		query += " AND completed_at IS NULL"
+		query += " AND tasks.completed_at IS NULL"
 	}
 	if filter.Search != nil {
-		query += " AND (title LIKE ? OR description LIKE ?)"
+		query += " AND (tasks.title LIKE ? OR tasks.description LIKE ?)"
 		wildcard := "%" + *filter.Search + "%"
 		args = append(args, wildcard, wildcard)
 	}
 	if filter.NextMonthOnly {
 		nextMonth := time.Now().AddDate(0, 1, 0)
-		query += " AND (due_date < ? OR due_date IS NULL)"
+		query += " AND (tasks.due_date < ? OR tasks.due_date IS NULL)"
 		args = append(args, pkg.DateStr(&nextMonth))
 	}
 
 	if filter.Completed {
-		query += " ORDER BY completed_at DESC"
+		query += " ORDER BY tasks.completed_at DESC"
 	} else {
-		query += " ORDER BY COALESCE(due_date, '9999-9-9') ASC, created_at DESC"
+		query += " ORDER BY COALESCE(tasks.due_date, '9999-9-9') ASC, tasks.created_at DESC"
 	}
 
 	var tasks []domain.Task

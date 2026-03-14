@@ -53,6 +53,7 @@ func (s *Server) Start(port string, publicDir embed.FS) error {
 	mux.Handle("GET /projects/new", handler(s.newProject))
 	mux.Handle("GET /projects/{id}", handler(s.getProject))
 	mux.Handle("POST /projects", handler(s.createProject))
+	mux.Handle("POST /projects/{id}/restore", handler(s.restoreProject))
 	mux.Handle("PUT /projects/{id}", handler(s.updateProject))
 	mux.Handle("DELETE /projects/{id}", handler(s.deleteProject))
 

@@ -20,12 +20,11 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
     * login?
     * default new task assignee to current user
     * private projects
-* Projects
-    * update/delete
 * "Pinned" tasks
     * stays at top, no due date
 * Design
     * support more hx-push-url for consistent reload experience
     * switch to https://gitlab.com/cznic/sqlite to avoid cgo
     * button loading states
+    * schema migrations
 

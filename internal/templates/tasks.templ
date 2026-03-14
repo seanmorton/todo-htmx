@@ -27,7 +27,6 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
   +
   </button>
   <form id="taskParams" class="filter-params" hx-get="/tasks/rows" hx-trigger="change, keyup changed delay:500ms from:find input[name='q']" hx-target="#taskRows">
-    <input type="search" name="q" placeholder="Search..." autocomplete="off" />
     <select name="projectId" autocomplete="off" hx-on:change="updateNewUrlParams()">
       <option value="">All Projects</option>
       for _, project := range projects {
@@ -44,6 +43,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ user.Name }</option>
       }
     </select>
+    <input type="search" name="q" placeholder="Search..." autocomplete="off" />
     <div>
       <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" checked></input>
       <label for="nextMonthOnly">Due next month</label>

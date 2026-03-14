@@ -16,9 +16,7 @@ templ Projects(projects []domain.Project, filters domain.ProjectFilters) {
         id="showDeleted"
         name="show_deleted"
         autocomplete="off"
-        if filters.ShowDeleted {
-          checked
-        }
+        checked?={ filters.ShowDeleted }
       />
       <label for="showDeleted">Show archived</label>
     </div>

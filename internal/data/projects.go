@@ -59,8 +59,8 @@ func (d *DB) ListProjects(filters domain.ProjectFilters) ([]domain.Project, erro
 		return nil, err
 	}
 
-	defer rows.Close()
 	var projects []domain.Project
+	defer rows.Close()
 	for rows.Next() {
 		var project domain.Project
 		if err := rows.Scan(&project.Id, &project.Name, &project.CreatedAt, &project.DeletedAt); err != nil {

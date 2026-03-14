@@ -121,12 +121,12 @@ func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
 		query += " ORDER BY COALESCE(tasks.due_date, '9999-9-9') ASC, tasks.created_at DESC"
 	}
 
-	var tasks []domain.Task
 	rows, err := d.dbConn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
 
+	var tasks []domain.Task
 	defer rows.Close()
 	for rows.Next() {
 		var task domain.Task

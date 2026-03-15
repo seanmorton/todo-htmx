@@ -31,7 +31,6 @@ templ Index(content templ.Component) {
         if ("serviceWorker" in navigator) {
           navigator.serviceWorker.register("/public/sw.js");
         }
-        PullToRefresh.init();
       </script>
       <script>
         // Server will always reply with an oob-swap alert on error

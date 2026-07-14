@@ -162,6 +162,12 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
         value={ pkg.DateStr(task.DueDate) }
       }
     />
+    <button type="button" hx-on:click="setDueDateField(0);">
+      Today
+    </button>
+    <button type="button" hx-on:click="setDueDateField(1);">
+      Tomorrow
+    </button>
 
     <label>Description</label>
     <textarea rows="4" name="description">
@@ -185,4 +191,14 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
         value={ fmt.Sprintf("%d", recurPolicy.N) }
       }
     />
+
+    <script>
+      function setDueDateField(todayOffset) {
+        const dateField = htmx.find("input[name=dueDate]");
+        const dateValue = new Date();
+        dateValue.setDate(dateValue.getDate() + todayOffset);
+
+        dateField.value = dateValue.toLocaleDateString("sv-SE");
+      }
+    </script>
 }

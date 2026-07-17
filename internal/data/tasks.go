@@ -111,6 +111,8 @@ func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
 	}
 
 	switch filter.DueDate {
+	case domain.NoDueDateFilter:
+		// no-op
 	case domain.MissingDueDate:
 		query += " AND (tasks.due_date IS NULL)"
 	default:

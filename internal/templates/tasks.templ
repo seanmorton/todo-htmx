@@ -44,7 +44,7 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
       }
     </select>
     <select name="dueDate" autocomplete="off" hx-on:change="updateNewUrlParams()">
-      <option value="">Any Due Date</option>
+      <option value={ domain.NoDueDateFilter } selected?={ filters.DueDate == domain.NoDueDateFilter } >Any Due Date</option>
       <option value={ domain.DueToday } selected?={ filters.DueDate == domain.DueToday } >Due Today</option>
       <option value={ domain.Due7Days } selected?={ filters.DueDate == domain.Due7Days } >Due in 7 days</option>
       <option value={ domain.Due30Days } selected?={ filters.DueDate == domain.Due30Days } >Due in 30 days</option>

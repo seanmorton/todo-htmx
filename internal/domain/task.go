@@ -22,12 +22,31 @@ const (
 	RPDaysAfterComplete = "DaC"
 )
 
+type DueDateFilter string
+
+const (
+	DueToday        DueDateFilter = "TODAY"
+	Due7Days        DueDateFilter = "7_DAYS"
+	Due30Days       DueDateFilter = "30_DAYS"
+	MissingDueDate  DueDateFilter = "MISSING"
+	NoDueDateFilter DueDateFilter = ""
+)
+
+func ParseDueDateFilter(in string) DueDateFilter {
+	switch in {
+	case string(DueToday), string(Due7Days), string(Due30Days), string(MissingDueDate):
+		return DueDateFilter(in)
+	default:
+		return NoDueDateFilter
+	}
+}
+
 type TaskFilters struct {
-	ProjectID     *int64
-	AssigneeID    *int64
-	Search        *string
-	Completed     bool
-	NextMonthOnly bool
+	ProjectID  *int64
+	AssigneeID *int64
+	Search     *string
+	Completed  bool
+	DueDate    DueDateFilter
 }
 
 type RecurPolicy struct {

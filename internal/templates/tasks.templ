@@ -43,10 +43,15 @@ templ Tasks(tasks []domain.Task, projects []domain.Project, users []domain.User,
         >{ user.Name }</option>
       }
     </select>
-    <input type="search" name="q" placeholder="Search..." autocomplete="off" />
+    <select name="dueDate" autocomplete="off" hx-on:change="updateNewUrlParams()">
+      <option value="">Any Due Date</option>
+      <option value={ domain.DueToday } selected?={ filters.DueDate == domain.DueToday } >Due Today</option>
+      <option value={ domain.Due7Days } selected?={ filters.DueDate == domain.Due7Days } >Due in 7 days</option>
+      <option value={ domain.Due30Days } selected?={ filters.DueDate == domain.Due30Days } >Due in 30 days</option>
+      <option value={ domain.MissingDueDate } selected?={ filters.DueDate == domain.MissingDueDate } >No Due Date</option>
+    </select>
     <div>
-      <input type="checkbox" name="nextMonthOnly" id="nextMonthOnly" autocomplete="off" checked></input>
-      <label for="nextMonthOnly">Due next month</label>
+      <input type="search" name="q" placeholder="Search..." autocomplete="off" />
       <input type="checkbox" name="completed" id="completed" autocomplete="off"></input>
       <label for="completed">Completed</label>
     </div>

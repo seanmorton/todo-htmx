@@ -109,10 +109,23 @@ func (d *DB) QueryTasks(filter domain.TaskFilters) ([]domain.Task, error) {
 		wildcard := "%" + *filter.Search + "%"
 		args = append(args, wildcard, wildcard)
 	}
-	if filter.NextMonthOnly {
-		nextMonth := time.Now().AddDate(0, 1, 0)
-		query += " AND (tasks.due_date < ? OR tasks.due_date IS NULL)"
-		args = append(args, pkg.DateStr(&nextMonth))
+
+	switch filter.DueDate {
+	case domain.MissingDueDate:
+		query += " AND (tasks.due_date IS NULL)"
+	default:
+		var cutoff time.Time
+		switch filter.DueDate {
+		case domain.Due7Days:
+			cutoff = time.Now().AddDate(0, 0, 7)
+		case domain.Due30Days:
+			cutoff = time.Now().AddDate(0, 0, 30)
+		default:
+			cutoff = time.Now().AddDate(0, 0, 1)
+		}
+		cutoffMidnight := time.Date(cutoff.Year(), cutoff.Month(), cutoff.Day(), 0, 0, 0, 0, cutoff.Location())
+		query += " AND (tasks.due_date < ?)"
+		args = append(args, pkg.DateStr(&cutoffMidnight))
 	}
 
 	if filter.Completed {

@@ -191,7 +191,6 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilters, error) {
 	filter := domain.TaskFilters{
 		Completed:     r.FormValue("completed") == "on",
-		NextMonthOnly: r.FormValue("nextMonthOnly") == "on",
 	}
 	if projectId := r.FormValue("projectId"); projectId != "" {
 		id, _ := strconv.ParseInt(projectId, 10, 64)
@@ -204,6 +203,8 @@ func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilters,
 	if search := r.FormValue("q"); search != "" {
 		filter.Search = &search
 	}
+	filter.DueDate = domain.ParseDueDateFilter(r.FormValue("dueDate"))
+
 	tasks, err := s.db.QueryTasks(filter)
 	return tasks, filter, err
 }

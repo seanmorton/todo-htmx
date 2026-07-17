@@ -70,38 +70,38 @@ func TestParseTask(t *testing.T) {
 			},
 		},
 		{
-			name:    "missing title",
-			form:    url.Values{"projectId": {"1"}},
+			name:      "missing title",
+			form:      url.Values{"projectId": {"1"}},
 			expectErr: true,
 		},
 		{
-			name:    "missing projectId",
-			form:    url.Values{"title": {"Do laundry"}},
+			name:      "missing projectId",
+			form:      url.Values{"title": {"Do laundry"}},
 			expectErr: true,
 		},
 		{
-			name:    "empty form",
-			form:    url.Values{},
+			name:      "empty form",
+			form:      url.Values{},
 			expectErr: true,
 		},
 		{
-			name:    "invalid projectId",
-			form:    url.Values{"title": {"X"}, "projectId": {"abc"}},
+			name:      "invalid projectId",
+			form:      url.Values{"title": {"X"}, "projectId": {"abc"}},
 			expectErr: true,
 		},
 		{
-			name:    "invalid assigneeId",
-			form:    url.Values{"title": {"X"}, "projectId": {"1"}, "assigneeId": {"abc"}},
+			name:      "invalid assigneeId",
+			form:      url.Values{"title": {"X"}, "projectId": {"1"}, "assigneeId": {"abc"}},
 			expectErr: true,
 		},
 		{
-			name:    "invalid dueDate",
-			form:    url.Values{"title": {"X"}, "projectId": {"1"}, "dueDate": {"not-a-date"}},
+			name:      "invalid dueDate",
+			form:      url.Values{"title": {"X"}, "projectId": {"1"}, "dueDate": {"not-a-date"}},
 			expectErr: true,
 		},
 		{
-			name: "multiple errors joined",
-			form: url.Values{"projectId": {"abc"}, "assigneeId": {"xyz"}},
+			name:      "multiple errors joined",
+			form:      url.Values{"projectId": {"abc"}, "assigneeId": {"xyz"}},
 			expectErr: true,
 		},
 	}
@@ -123,10 +123,10 @@ func TestParseTask(t *testing.T) {
 
 func TestParseTask_RecurPolicy(t *testing.T) {
 	tests := []struct {
-		name       string
-		form       url.Values
-		expected *domain.RecurPolicy
-		expectErr  bool
+		name      string
+		form      url.Values
+		expected  *domain.RecurPolicy
+		expectErr bool
 	}{
 		{
 			name: "days after complete",

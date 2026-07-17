@@ -28,7 +28,7 @@ func TestParseString(t *testing.T) {
 			res := parseString(r, "f", &errs)
 
 			if len(errs) == 0 && tt.expectErr || len(errs) > 0 && !tt.expectErr {
-				t.Errorf("got err: %v, expected an err: %t", validationErr(errs), tt.expectErr )
+				t.Errorf("got err: %v, expected an err: %t", validationErr(errs), tt.expectErr)
 			}
 			if res != tt.expected {
 				t.Errorf("got %q, expected %q", res, tt.expected)
@@ -150,5 +150,5 @@ func TestParseOptDate(t *testing.T) {
 	}
 }
 
-func strPtr(s string) *string   { return &s }
-func int64Ptr(n int64) *int64   { return &n }
+func strPtr(s string) *string { return &s }
+func int64Ptr(n int64) *int64 { return &n }

@@ -190,7 +190,7 @@ func (s *Server) deleteTask(w http.ResponseWriter, r *http.Request) *httpErr {
 
 func (s *Server) fetchTasks(r *http.Request) ([]domain.Task, domain.TaskFilters, error) {
 	filter := domain.TaskFilters{
-		Completed:     r.FormValue("completed") == "on",
+		Completed: r.FormValue("completed") == "on",
 	}
 	if projectId := r.FormValue("projectId"); projectId != "" {
 		id, _ := strconv.ParseInt(projectId, 10, 64)

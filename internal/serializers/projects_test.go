@@ -24,13 +24,13 @@ func TestParseProject(t *testing.T) {
 			},
 		},
 		{
-			name:    "missing name",
-			form:    url.Values{},
+			name:      "missing name",
+			form:      url.Values{},
 			expectErr: true,
 		},
 		{
-			name:    "empty name",
-			form:    url.Values{"name": {""}},
+			name:      "empty name",
+			form:      url.Values{"name": {""}},
 			expectErr: true,
 		},
 	}

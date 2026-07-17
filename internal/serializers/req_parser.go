@@ -13,7 +13,7 @@ import (
 func parseString(r *http.Request, field string, errs *[]string) string {
 	val := r.FormValue(field)
 	if val == "" {
-		*errs = append(*errs, field + " is required")
+		*errs = append(*errs, field+" is required")
 	}
 	return val
 }
@@ -21,12 +21,12 @@ func parseString(r *http.Request, field string, errs *[]string) string {
 func parseInt64(r *http.Request, field string, errs *[]string) int64 {
 	str := r.FormValue(field)
 	if str == "" {
-		*errs = append(*errs, field + " is required")
+		*errs = append(*errs, field+" is required")
 		return 0
 	}
 	n, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
-		*errs = append(*errs, "invalid " + field)
+		*errs = append(*errs, "invalid "+field)
 	}
 	return n
 }
@@ -46,7 +46,7 @@ func parseOptInt64(r *http.Request, field string, errs *[]string) *int64 {
 	}
 	n, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
-		*errs = append(*errs, "invalid " + field)
+		*errs = append(*errs, "invalid "+field)
 		return nil
 	}
 	return &n

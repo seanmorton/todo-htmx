@@ -87,6 +87,19 @@ button:enabled:hover, .button:not([aria-disabled="true"]):hover, input[type="sub
   gap: 0.5rem;
 }
 
+.fullscreen-textarea:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height for mobile browser chrome */
+  z-index: 9999;
+  resize: none;
+  box-sizing: border-box;
+  font-size: 16px; /* prevents iOS zoom on focus */
+}
+
 .new-btn {
   position: fixed;
   bottom: 1rem;

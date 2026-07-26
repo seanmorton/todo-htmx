@@ -175,7 +175,7 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
     </button>
 
     <label>Description</label>
-    <textarea rows="4" name="description">
+    <textarea class="fullscreen-textarea" rows="4" name="description">
       if task.Description != nil {
         { *task.Description }
       }

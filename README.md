@@ -10,8 +10,6 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
 
 ### TODO
 * Tasks
-    * "Today" / "Tomorrow" due date buttons
-    * Full screen description viewer/editor on mobile
     * Calendar view
     * Clickable links in desc
 * Users/Assignees
@@ -20,8 +18,6 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
     * login?
     * default new task assignee to current user
     * private projects
-* "Pinned" tasks
-    * stays at top, no due date
 * Design
     * support more hx-push-url for consistent reload experience
     * switch to https://gitlab.com/cznic/sqlite to avoid cgo

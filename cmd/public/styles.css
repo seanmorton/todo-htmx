@@ -92,12 +92,31 @@ button:enabled:hover, .button:not([aria-disabled="true"]):hover, input[type="sub
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
-  height: 100dvh; /* dynamic viewport height for mobile browser chrome */
+  height: 100dvh;
   z-index: 9999;
   resize: none;
   box-sizing: border-box;
-  font-size: 16px; /* prevents iOS zoom on focus */
+  font-size: 16px;
+  padding-bottom: 3rem; /* leave room for the Done button */
+}
+
+.fullscreen-textarea:focus + .fullscreen-done-btn {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 3rem;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.fullscreen-done-btn {
+  display: none;
 }
 
 .new-btn {

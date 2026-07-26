@@ -180,6 +180,7 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
         { *task.Description }
       }
     </textarea>
+    <button type="button" class="fullscreen-done-btn" onclick="document.getElementById('description').blur()">Done</button>
 
     <label>Repeat?</label>
     <select name="recurPolicyType">

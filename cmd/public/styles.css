@@ -76,9 +76,6 @@
 .check-button {
   background-color: inherit;
 }
-button:enabled:hover, .button:not([aria-disabled="true"]):hover, input[type="submit"]:enabled:hover, input[type="reset"]:enabled:hover, input[type="button"]:enabled:hover {
-  background-color: inherit;
-}
 
 .filter-params {
   display: flex;

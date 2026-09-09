@@ -111,6 +111,7 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
   <div id="taskForm">
     <div class="overlay">
       <form
+        class="scroll-form"
         if isNew {
           hx-post="/tasks"
         } else {
@@ -119,20 +120,25 @@ templ TaskForm(task domain.Task, projects []domain.Project, users []domain.User)
         hx-swap="none"
         hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
       >
-        @TaskFields(task, task.GetRecurPolicy(), projects, users)
-        <br />
-        <button type="submit" disabled?={ task.Done() }>Save</button>
-        <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
-        <button
-          hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
-          hx-confirm="Are you sure you want to delete this task?"
-          hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
-          class="red-text"
-          style="float: right;"
-        >Delete</button>
-        if !isNew {
-          <div style="clear: right;"><small>Created: { pkg.DateStr(&task.CreatedAt) }</small></div>
-        }
+        <div class="form-body">
+          @TaskFields(task, task.GetRecurPolicy(), projects, users)
+        </div>
+        <div class="form-actions">
+          <div class="form-buttons">
+            <button type="submit" disabled?={ task.Done() }>Save</button>
+            <button hx-on:click="document.getElementById('taskForm').innerHTML='';">Close</button>
+            <button
+              hx-delete={ fmt.Sprintf("/tasks/%d", task.Id) }
+              hx-confirm="Are you sure you want to delete this task?"
+              hx-on::after-request="if (event.detail.successful) { document.getElementById('taskForm').innerHTML=''; }"
+              class="red-text"
+              style="margin-left: auto;"
+            >Delete</button>
+          </div>
+          if !isNew {
+            <small>Created: { pkg.DateStr(&task.CreatedAt) }</small>
+          }
+        </div>
       </form>
     </div>
   </div>

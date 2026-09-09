@@ -10,6 +10,7 @@ https://github.com/user-attachments/assets/b276cfa4-ee3e-4ab1-a418-3fba21490614
 
 ### TODO
 * Tasks
+    * due date filter: add to URL params and default to today
     * Calendar view
     * Clickable links in desc
 * Users/Assignees

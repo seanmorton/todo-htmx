@@ -40,11 +40,36 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 800;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  max-height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
   padding: 2rem;
   background: #404040;
   border: 2px solid;
   border-color: --accent;
+}
+
+.scroll-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.scroll-form .form-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.scroll-form .form-actions {
+  flex: none;
+  padding-top: 1rem;
+}
+.scroll-form .form-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 #alert {
@@ -137,7 +162,7 @@
     left: 0%;
     transform: none;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
   }
 }
 

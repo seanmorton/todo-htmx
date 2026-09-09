@@ -25,19 +25,23 @@ const (
 type DueDateFilter string
 
 const (
-	DueToday        DueDateFilter = "TODAY"
-	Due7Days        DueDateFilter = "7_DAYS"
-	Due30Days       DueDateFilter = "30_DAYS"
-	MissingDueDate  DueDateFilter = "MISSING"
-	NoDueDateFilter DueDateFilter = ""
+	DueToday       DueDateFilter = "TODAY"
+	Due7Days       DueDateFilter = "7_DAYS"
+	Due30Days      DueDateFilter = "30_DAYS"
+	MissingDueDate DueDateFilter = "MISSING"
+	AnyDueDate     DueDateFilter = "ANY"
 )
 
 func ParseDueDateFilter(in string) DueDateFilter {
 	switch in {
-	case string(DueToday), string(Due7Days), string(Due30Days), string(MissingDueDate):
+	case string(DueToday),
+		string(Due7Days),
+		string(Due30Days),
+		string(MissingDueDate),
+		string(AnyDueDate):
 		return DueDateFilter(in)
 	default:
-		return NoDueDateFilter
+		return DueToday
 	}
 }
 

@@ -29,10 +29,21 @@ func parseRecurPolicy(r *http.Request, errs *[]string) []byte {
 
 	if *n < 1 {
 		*errs = append(*errs, "days must be greater than 0")
-		return nil
 	}
 	if *policyType == domain.RPDayOfMonth && *n > 28 {
 		*errs = append(*errs, "day of month cannot be greater than 28")
+	}
+	if *policyType == domain.RPCalDate {
+		mm := *n / 100
+		dd := int(*n % 100)
+		if mm < 1 || mm > 12 {
+			*errs = append(*errs, "MM must be within range 1-12")
+		}
+		if dd < 1 || dd > 28 {
+			*errs = append(*errs, "DD must be within range 1-28")
+		}
+	}
+	if len(*errs) > 0 {
 		return nil
 	}
 

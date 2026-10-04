@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/seanmorton/todo-htmx/pkg"
 )
 
 type Task struct {
@@ -20,6 +22,7 @@ type Task struct {
 const (
 	RPDayOfMonth        = "DoM"
 	RPDaysAfterComplete = "DaC"
+	RPCalDate           = "CalD"
 )
 
 type DueDateFilter string
@@ -86,6 +89,19 @@ func (t *Task) NextRecurDate() *time.Time {
 		next = t.CompletedAt.AddDate(0, 0, int(rp.N))
 	case RPDayOfMonth:
 		next = t.CompletedAt.AddDate(0, 1, (-t.CompletedAt.Day() + int(rp.N)))
+	case RPCalDate:
+		next = nextMMDD(*t.CompletedAt, rp.N)
 	}
 	return &next
+}
+
+func nextMMDD(start time.Time, n int64) time.Time {
+	mm := n / 100
+	dd := int(n % 100)
+	next := pkg.LocalDate(start.Year(), time.Month(mm), dd)
+
+	if next.Compare(start) <= 0 {
+		return pkg.LocalDate(start.Year()+1, time.Month(mm), dd)
+	}
+	return next
 }

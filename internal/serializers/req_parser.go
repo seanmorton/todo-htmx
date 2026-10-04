@@ -53,7 +53,7 @@ func parseOptInt64(r *http.Request, field string, errs *[]string) *int64 {
 }
 
 func parseOptDate(r *http.Request, field string, errs *[]string) *time.Time {
-	t, err := pkg.ParseOptDateStr(r.FormValue(field))
+	t, err := pkg.ParseOptLocalDate(r.FormValue(field))
 	if err != nil {
 		*errs = append(*errs, "invalid "+field)
 		return nil

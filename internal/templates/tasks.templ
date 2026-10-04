@@ -10,9 +10,7 @@ import (
 
 
 func isPastDue(dueDate time.Time) bool {
-  now := time.Now()
-  nowDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-  return dueDate.Before(nowDate)
+  return dueDate.Before(pkg.LocalNowMidnight())
 }
 
 func newTaskURL(filters domain.TaskFilters) string {
@@ -197,6 +195,9 @@ templ TaskFields(task domain.Task, recurPolicy *domain.RecurPolicy, projects []d
       <option value={ domain.RPDayOfMonth }
         selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPDayOfMonth }
       >Day of Month</option>
+      <option value={ domain.RPCalDate }
+        selected?={ recurPolicy != nil && recurPolicy.Type == domain.RPCalDate }
+      >Cal Date (MMDD)</option>
     </select>
     <input type="number" name="recurPolicyN" min="1"
       if recurPolicy != nil {

@@ -125,7 +125,7 @@ func (s *Server) completeTask(w http.ResponseWriter, r *http.Request) *httpErr {
 		return retrieveErr
 	}
 
-	now := time.Now()
+	now := time.Now().Local()
 	task.CompletedAt = &now
 	_, err := s.db.UpdateTask(task)
 	if err != nil {

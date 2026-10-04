@@ -38,7 +38,7 @@ func (s *Server) deleteProject(w http.ResponseWriter, r *http.Request) *httpErr 
 		return fetchErr
 	}
 
-	now := time.Now()
+	now := time.Now().Local()
 	project.DeletedAt = &now
 	res, err := s.db.UpdateProject(project)
 	if err != nil {

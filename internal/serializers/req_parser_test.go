@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/seanmorton/todo-htmx/pkg"
 )
 
 func formRequest(vals url.Values) *http.Request {
@@ -119,8 +121,8 @@ func TestParseOptInt64(t *testing.T) {
 	}
 }
 
-func TestParseOptDate(t *testing.T) {
-	validDate := time.Date(2025, 3, 15, 0, 0, 0, 0, time.UTC)
+func TestParseOptLocalDate(t *testing.T) {
+	validDate := pkg.LocalDate(2025, 3, 15)
 	tests := []struct {
 		name      string
 		val       string
@@ -150,5 +152,6 @@ func TestParseOptDate(t *testing.T) {
 	}
 }
 
+// TODO(go 1.26) replace with new()
 func strPtr(s string) *string { return &s }
 func int64Ptr(n int64) *int64 { return &n }
